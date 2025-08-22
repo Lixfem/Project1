@@ -1,0 +1,18 @@
+{% extends 'facture/base.html' %}
+
+{% block content %}
+    <h2>{{facture.dateCreationFacture}}</h2>
+
+    <ul>
+        <li>Nom du client: {{client.adresseClient}}</li>
+        <li>Enregistrer par: {{facture.factureSaveBy}} </li>
+        <li>Montant Total de la facture: {{facture.totalFacture}}</li>
+        <li>Statut de la facture: {{facture.statutFacture}}</li>
+        <li>Numéro de la facture: {{facture.numeroFacture}}</li>
+        <li>Dernière mise à jour: {{facture.lastUpdateFacture}} </li>
+        <li>Commentaire de la facture: {{facture.commentaireFacture}} </li>
+    </ul>
+
+    <a href="{%url 'liste-facture' %}">Retour à la liste des factures</a>
+
+{% endblock %}

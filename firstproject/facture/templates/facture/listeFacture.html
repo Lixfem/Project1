@@ -1,0 +1,13 @@
+{%extends 'facture/base.html' %}
+
+{% block content %}
+<h1>Facture</h1>
+
+<ul>
+    {% for facture in factures %}
+    <li><a href="{% url 'details-facture' facture.id%}">{{ facture.dateCreationFacture}}</a></li>
+    {% endfor %}
+</ul>
+    
+{% endblock %}
+

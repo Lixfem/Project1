@@ -1,0 +1,14 @@
+{% load static %}
+<html>
+    <head><title>Facture</title></head>
+    <link rel="stylesheet" href="{% static 'facture/style.css'%}"/>
+    <body>
+
+        <nav>
+            <a href="{% url 'liste-clients' %}">Clients</a>
+        </nav>
+
+        {% block content %}{% endblock %}
+
+    </body>
+</html>

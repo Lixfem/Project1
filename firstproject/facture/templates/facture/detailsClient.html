@@ -1,0 +1,17 @@
+{% extends 'facture/base.html' %}
+
+{% block content %}
+    <h2>{{ client.nomClient }}</h2>
+    <ul>
+        <li>Adresse du client: {{client.adresseClient}}</li>
+        <li>Numéro de téléphone du client : {{client.telephoneClient}} </li>
+        <li>Adresse mail du client : {{client.emailClient}}</li>
+        <li>Sexe : {{client.sexClient}} </li>
+        <li>Age du client : {{client.ageClient}} </li>
+        <li>Ville du client :{{client.villeClient}} </li>
+        <li>Date du client : {{client.dateCreationClient}} </li>
+    </ul>
+
+    <a href="{%url 'liste-clients'%}">Retour à tous les clients</a>
+    <a href="{% url 'update-client' client.id %}"> Modifier ce client</a>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'facture/base.html' %}
+
+{% block content %}
+<h1>Clients</h1>
+<a href="{% url 'create-client' %}">Enregistrer un nouveau client</a>
+ <ul>
+
+    {% for client in clients %} 
+        <li><a href="{% url 'details-clients' client.id %} ">{{ client.nomClient }}</a>
+        - <a href="{% url 'update-client' client.id %}">[Modifier]</a>
+
+        </li>
+        
+    {% endfor %}
+           
+  </ul>
+</ul>
+ 
+{% endblock %}
+ 
