@@ -1,14 +1,220 @@
-{% load static %}
-<html>
-    <head><title>Facture</title></head>
-    <link rel="stylesheet" href="{% static 'facture/style.css'%}"/>
-    <body>
+<!DOCTYPE html>
+<html lang="fr">     <!-- Ajout du tag load static en haut du fichier -->
+    {% load static %}
+<head>
+    <!-- Encodage des caractères pour supporter les accents français -->
+    <meta charset="UTF-8">
+    <!-- Configuration responsive pour les appareils mobiles -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Titre dynamique de la page avec block Django personnalisable -->
+    <title>{% block title %}Système de Facturation{% endblock %}</title>
+    
+    <!-- Inclusion du framework CSS Bootstrap 5.3.2 depuis CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bibliothèque d'icônes Font Awesome pour les icônes interface -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Block Django pour CSS additionnel dans les templates enfants -->
+    {% block extra_css %}{% endblock %}
+    
+</head>
+<body>
+    <!-- Barre de navigation principale fixée en haut -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <div class="container-fluid">
+            <!-- Bouton burger pour menu mobile (visible uniquement sur petits écrans) -->
+            <button class="btn btn-outline-light me-3 d-lg-none" type="button" id="sidebarToggle">
+                <i class="fas fa-bars"></i> <!-- Icône hamburger -->
+            </button>
+            
+            <!-- Logo/Marque de l'application avec lien vers dashboard -->
+                <i class="fas fa-calculator me-2"></i> <!-- Icône calculatrice -->
+                FacturePro
+            </a>
+            
+            <!-- Menu utilisateur aligné à droite -->
+            <div class="navbar-nav ms-auto">
+                <div class="nav-item dropdown">
+                    <!-- Lien dropdown avec nom utilisateur dynamique -->
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>
+                        <!-- Affichage conditionnel : prénom, nom d'utilisateur ou "Utilisateur" -->
+                    </a>
+                    <!-- Menu déroulant utilisateur -->
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Mon profil</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Paramètres</a></li>
+                        <li><hr class="dropdown-divider"></li> <!-- Séparateur -->
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i>Déconnexion</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-        <nav>
-            <a href="{% url 'liste-clients' %}">Clients</a>
-        </nav>
+   <div class="container-fluid">
+    <div class="wrapper">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    {{ message|safe }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
 
-        {% block content %}{% endblock %}
+    </div>
+    <!-- Overlay semi-transparent pour fermer la sidebar sur mobile -->
+    <div class="overlay" id="overlay"></div>
 
-    </body>
+    <!-- Conteneur principal avec marge pour navbar fixe -->
+    <div class="container-fluid" style="margin-top: 56px;">
+        <div class="row">
+            <!-- Sidebar de navigation latérale -->
+            <nav class="col-lg-2 sidebar p-3" id="sidebar">
+                <div class="nav flex-column">
+                    
+                    <!-- Séparateur visuel -->
+                    <hr class="my-3" style="border-color: rgba(255,255,255,0.2);">
+                    
+                    <!-- Section Devis -->
+                    <h6 class="text-uppercase text-white-50 fw-bold px-3 mt-3 mb-2">Devis</h6>
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-file-invoice"></i>
+                        Tous les devis
+                    </a>
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-plus-circle"></i>
+                        Nouveau devis
+                    </a>
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-clock"></i>
+                        Devis en attente
+                    </a>
+                    
+                    <!-- Section Factures -->
+                   <h6 class="text-uppercase text-white-50 fw-bold px-3 mt-4 mb-2">Factures</h6>
+                    <a class="nav-link" href="{% url 'liste-facture' %}">
+                    <i class="fas fa-receipt"></i>
+                         Toutes les factures
+                    </a>
+                    
+                   
+                   
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-plus-circle"></i>
+                        Nouvelle facture
+                    </a>
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Factures impayées
+                    </a>
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-check-circle"></i>
+                        Factures payées
+                    </a>
+                    
+                    <!-- Section Clients -->
+                    <h6 class="text-uppercase text-white-50 fw-bold px-3 mt-4 mb-2">Clients</h6>
+                    <a class="nav-link" href="{% url 'liste-clients'%}">
+                        <i class="fas fa-users"></i>
+                        Tous les clients
+                    </a>
+                    <a class="nav-link" href="{% url 'create-client'%}">
+                        <i class="fas fa-user-plus"></i>
+                        Nouveau client
+                    </a>
+                    
+                    <!-- Section Reporting -->
+                    <h6 class="text-uppercase text-white-50 fw-bold px-3 mt-4 mb-2">Reporting</h6>
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-chart-bar"></i>
+                        Statistiques
+                    </a>
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-download"></i>
+                        Exports
+                    </a>
+                    
+                    <!-- Séparateur avant configuration -->
+                    <hr class="my-3" style="border-color: rgba(255,255,255,0.2);">
+                    
+                    <!-- Lien configuration -->
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-cog"></i>
+                        Configuration
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-lg-10 main-content p-0">
+                <!-- Page content -->
+                <div class="p-4">
+                  
+                 {% block content %}   {% endblock %}
+                </div>
+
+                <!-- Footer -->
+                <footer class="footer mt-auto py-3 px-4">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <span class="text-muted">© 2025 FacturePro - Système de facturation</span>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <span class="text-muted">Version 1.0.0</span>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+                <!-- enfooyter -->
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    
+    <!--  <script>
+        // Toggle sidebar sur mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            
+            if (sidebarToggle && sidebar && overlay) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.add('show');
+                    overlay.classList.add('show');
+                });
+                
+                overlay.addEventListener('click', function() {
+                    sidebar.classList.remove('show');
+                    overlay.classList.remove('show');
+                });
+            }
+            
+            // Auto-hide alerts après 5 secondes
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    if (bsAlert) {
+                        bsAlert.close();
+                    }
+                }, 5000);
+            });
+        });
+    </script> -->
+   
+<!--{% block extra_js %}{% endblock %}  -->
+    
+</body>
 </html>

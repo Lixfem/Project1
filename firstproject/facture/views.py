@@ -1,11 +1,54 @@
 from django.shortcuts import HttpResponse
 from django.shortcuts import render
-from facture.models import Client 
-from facture.models import Facturation
 from django.shortcuts import get_object_or_404
 from facture.forms import ClientForm
 from django.core.mail import send_mail
 from django.shortcuts import redirect 
+from django.views import View
+from .models import *
+from django.contrib import messages
+
+class HomeView(View):
+    template_name = 'facture/index.html'
+
+    def get(self, request, *args, **kwargs):
+        factures = Facturation.objects.select_related('clientFacture', 'factureSaveBy').all()
+        devis = Devis.objects.select_related('clientDevis', 'devisSaveBys').all()
+        context = {
+            'factures': factures,
+            'devis': devis
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        factures = Facturation.objects.select_related('clientFacture', 'factureSaveBy').all()
+        devis = Devis.objects.select_related('clientDevis', 'devisSaveBys').all()
+        context = {
+            'factures': factures,
+            'devis': devis
+        }
+        return render(request, self.template_name, context)
+
+
+class addCustomerView(View):  # Utilisation de PascalCase pour le nom de la classe
+    template_name = 'facture/ajouterClient.html'
+
+    def get(self, request, *args, **kwargs):
+        form = ClientForm()  # Créer un formulaire vide pour la requête GET
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = ClientForm(request.POST)
+        if form.is_valid():
+            client = form.save(commit=False)  # Ne pas sauvegarder directement dans la base
+            client.clientSaveBy = request.user  # Associer l'utilisateur connecté
+            client.save()  # Sauvegarder l'objet avec clientSaveBy défini
+            messages.success(request, 'Client ajouté avec succès')
+            return redirect('liste-clients')
+        else :
+            form = ClientForm()
+        # Si le formulaire n'est pas valide, renvoyer le formulaire avec les erreurs
+        return render(request, self.template_name, {'form': form})
 
 
 

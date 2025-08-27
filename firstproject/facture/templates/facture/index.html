@@ -1,0 +1,145 @@
+{% extends 'facture/base.html' %}
+{% load static %}
+
+{% block content %}
+    <!-- Main content -->
+    <main class="col-lg-10 main-content p-0">
+        <!-- Breadcrumb -->
+        {% block breadcrumb %}
+        <div class="bg-white border-bottom px-4 py-3">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    {% block breadcrumb_items %}{% endblock %}
+                </ol>
+            </nav>
+        </div>
+        {% endblock %}
+
+        <!-- Page content -->
+        <div class="p-4">
+            <!-- Messages Django -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Contenu par défaut - Tableau de bord -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h1 class="h3 mb-3">Tableau de bord</h1>
+                </div>
+            </div>
+
+            <!-- Statistiques rapides -->
+            <div class="row mb-4">
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card stats-card success">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <h6 class="text-muted mb-1">Factures payées</h6>
+                                    <h4 class="mb-0">15 240 €</h4>
+                                </div>
+                                <div class="text-success">
+                                    <i class="fas fa-euro-sign fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card stats-card warning">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <h6 class="text-muted mb-1">Factures en attente</h6>
+                                    <h4 class="mb-0">8 560 €</h4>
+                                </div>
+                                <div class="text-warning">
+                                    <i class="fas fa-clock fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <h6 class="text-muted mb-1">Devis en cours</h6>
+                                    <h4 class="mb-0">12</h4>
+                                </div>
+                                <div class="text-primary">
+                                    <i class="fas fa-file-invoice fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card stats-card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <h6 class="text-muted mb-1">Clients actifs</h6>
+                                    <h4 class="mb-0">47</h4>
+                                </div>
+                                <div class="text-info">
+                                    <i class="fas fa-users fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions rapides -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Actions rapides</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    <a href="#" class="btn btn-primary w-100">
+                                        <i class="fas fa-plus-circle me-2"></i>
+                                        Nouveau devis
+                                    </a>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <a href="#" class="btn btn-success w-100">
+                                        <i class="fas fa-receipt me-2"></i>
+                                        Nouvelle facture
+                                    </a>
+                                
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <a href="{% url 'create-client'%}" class="btn btn-info w-100">
+                                        <i class="fas fa-user-plus me-2"></i>
+                                        Nouveau client
+                                    </a>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <a href="#" class="btn btn-secondary w-100">
+                                        <i class="fas fa-chart-bar me-2"></i>
+                                        Voir les stats
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock %}

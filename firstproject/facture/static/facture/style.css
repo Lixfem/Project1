@@ -1,3 +1,200 @@
-*{
-    background:#ffffff;
+/* ===================================
+   SYSTÈME DE FACTURATION - STYLES CSS
+   =================================== */
+
+/* Variables CSS personnalisées pour la cohérence des couleurs */
+:root {
+    --primary-color: #2563eb;    /* Bleu principal */
+    --secondary-color: #64748b;  /* Gris secondaire */
+    --success-color: #22c55e;    /* Vert succès */
+    --warning-color: #f59e0b;    /* Orange avertissement */
+    --danger-color: #ef4444;     /* Rouge danger */
 }
+
+/* ===================================
+   NAVIGATION PRINCIPALE
+   =================================== */
+
+/* Styles pour la marque/logo dans la navbar */
+.navbar-brand {
+    font-weight: 700;        /* Texte en gras */
+    font-size: 1.5rem;       /* Taille de police augmentée */
+}
+
+/* ===================================
+   SIDEBAR NAVIGATION
+   =================================== */
+
+/* Sidebar principale avec dégradé bleu */
+.sidebar {
+    min-height: calc(100vh - 56px);  /* Hauteur = hauteur écran - hauteur navbar */
+    background: linear-gradient(135deg, var(--primary-color) 0%, #1e40af 100%);  /* Dégradé diagonal */
+    color: white;                     /* Texte blanc */
+}
+
+/* Styles des liens de navigation dans la sidebar */
+.sidebar .nav-link {
+    color: rgba(255, 255, 255, 0.8);  /* Blanc semi-transparent */
+    padding: 0.75rem 1rem;            /* Espacement interne */
+    border-radius: 0.5rem;            /* Coins arrondis */
+    margin: 0.25rem 0;                /* Marge verticale */
+    transition: all 0.3s ease;        /* Animation fluide de 0.3s */
+}
+
+/* États hover et actif des liens sidebar */
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.1);  /* Fond blanc transparent */
+    color: white;                                 /* Texte blanc pur */
+    transform: translateX(5px);                   /* Décalage horizontal de 5px */
+}
+
+/* Espacement des icônes dans les liens sidebar */
+.sidebar .nav-link i {
+    width: 20px;          /* Largeur fixe pour alignement */
+    margin-right: 0.5rem; /* Espace entre icône et texte */
+}
+
+/* ===================================
+   CONTENU PRINCIPAL
+   =================================== */
+
+/* Zone de contenu principal avec fond gris clair */
+.main-content {
+    background-color: #f8fafc;  /* Gris très clair pour contraste */
+}
+
+/* ===================================
+   CARTES ET COMPOSANTS
+   =================================== */
+
+/* Styles des cartes avec ombre subtile */
+.card {
+    border: none;  /* Supprime la bordure par défaut */
+    /* Ombre portée subtile */
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;  /* Animation pour les interactions */
+}
+
+/* Effet hover sur les cartes - ombre plus prononcée */
+.card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Cartes de statistiques avec bordure colorée à gauche */
+.stats-card {
+    border-left: 4px solid var(--primary-color);  /* Bordure gauche bleue */
+}
+
+/* Variants de couleur pour les cartes stats */
+.stats-card.success {
+    border-left-color: var(--success-color);  /* Bordure verte */
+}
+
+.stats-card.warning {
+    border-left-color: var(--warning-color);  /* Bordure orange */
+}
+
+.stats-card.danger {
+    border-left-color: var(--danger-color);   /* Bordure rouge */
+}
+
+/* ===================================
+   BOUTONS PERSONNALISÉS
+   =================================== */
+
+/* Personnalisation du bouton primary */
+.btn-primary {
+    background-color: var(--primary-color);  /* Couleur de fond personnalisée */
+    border-color: var(--primary-color);      /* Couleur de bordure assortie */
+}
+
+/* État hover du bouton primary */
+.btn-primary:hover {
+    background-color: #1d4ed8;  /* Bleu plus foncé au survol */
+    border-color: #1d4ed8;      /* Bordure assortie */
+}
+
+/* ===================================
+   BREADCRUMB NAVIGATION
+   =================================== */
+
+/* Breadcrumb sans fond avec séparateurs personnalisés */
+.breadcrumb {
+    background-color: transparent;  /* Fond transparent */
+    padding: 0;                     /* Supprime le padding par défaut */
+}
+
+/* Personnalisation du séparateur breadcrumb */
+.breadcrumb-item + .breadcrumb-item::before {
+    content: ">";                    /* Utilise ">" au lieu de "/" */
+    color: var(--secondary-color);   /* Couleur grise */
+}
+
+/* ===================================
+   FOOTER
+   =================================== */
+
+/* Styles du footer */
+.footer {
+    background-color: #1e293b;  /* Fond gris foncé */
+    color: #cbd5e1;             /* Texte gris clair */
+}
+
+/* ===================================
+   RESPONSIVE DESIGN - MOBILE
+   =================================== */
+
+/* Styles responsive pour écrans mobiles (max 768px) */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;                /* Position fixe pour overlay */
+        top: 56px;                     /* Positionnée sous la navbar (56px de haut) */
+        left: -250px;                  /* Cachée à gauche par défaut */
+        width: 250px;                  /* Largeur fixe */
+        height: calc(100vh - 56px);    /* Hauteur = écran - navbar */
+        z-index: 1000;                 /* Au-dessus du contenu */
+        transition: left 0.3s ease;    /* Animation de glissement */
+    }
+    
+    /* Sidebar visible sur mobile quand classe "show" ajoutée */
+    .sidebar.show {
+        left: 0;  /* Glisse vers la droite pour apparaître */
+    }
+    
+    /* Overlay sombre derrière la sidebar mobile */
+    .overlay {
+        position: fixed;                    /* Couvre tout l'écran */
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);  /* Fond noir semi-transparent */
+        z-index: 999;                           /* Juste en dessous de la sidebar */
+        display: none;                          /* Caché par défaut */
+    }
+    
+    /* Overlay visible quand classe "show" ajoutée */
+    .overlay.show {
+        display: block;
+    }
+}
+
+ table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+}
+th {
+            background-color: #f2f2f2;
+}
+ tr:nth-child(even) {
+            background-color: #f9f9f9;        }
+tr:hover {
+            background-color: #f5f5f5;
+        }

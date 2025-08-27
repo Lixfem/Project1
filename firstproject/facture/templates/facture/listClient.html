@@ -1,20 +1,366 @@
 {% extends 'facture/base.html' %}
 
 {% block content %}
-<h1>Clients</h1>
-<a href="{% url 'create-client' %}">Enregistrer un nouveau client</a>
- <ul>
+<div class="container-fluid mt-4">
+    <!-- En-tête avec titre et bouton d'ajout -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-users me-2 text-primary"></i>
+                Liste des clients
+            </h1>
+            <p class="text-muted">Gérez tous vos clients</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="{% url 'create-client' %}" class="btn btn-primary">
+                <i class="fas fa-user-plus me-2"></i>
+                Nouveau client
+            </a>
+        </div>
+    </div>
 
-    {% for client in clients %} 
-        <li><a href="{% url 'details-clients' client.id %} ">{{ client.nomClient }}</a>
-        - <a href="{% url 'update-client' client.id %}">[Modifier]</a>
+    <!-- Barre de recherche et filtres -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text" class="form-control" id="searchInput" placeholder="Rechercher un client...">
+                <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="row">
+                <div class="col-md-6">
+                    <select class="form-select" id="filterSex">
+                        <option value="">Tous les sexes</option>
+                        <option value="M">Masculin</option>
+                        <option value="F">Féminin</option>
+                        <option value="A">Autre</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <select class="form-select" id="filterAge">
+                        <option value="">Toutes les tranches d'âge</option>
+                        <option value="0-15">0-15 ans</option>
+                        <option value="15-25">15-25 ans</option>
+                        <option value="25-45">25-45 ans</option>
+                        <option value="45+">45 ans et plus</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        </li>
+    <!-- Statistiques rapides -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="bg-primary text-white p-3 rounded">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ clients.count }}</h4>
+                        <p class="mb-0">Total clients</p>
+                    </div>
+                    <i class="fas fa-users fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="bg-success text-white p-3 rounded">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ clients|length }}</h4>
+                        <p class="mb-0">Actifs</p>
+                    </div>
+                    <i class="fas fa-user-check fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table des clients -->
+    <div class="row">
+        <div class="col-12">
+            {% if clients %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped" id="clientsTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th scope="col">Identifiant</th>
+                                <th scope="col">
+                                    <i class="fas fa-user me-1"></i>Nom
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-envelope me-1"></i>Email
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-phone me-1"></i>Téléphone
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-venus-mars me-1"></i>Sexe
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-birthday-cake me-1"></i>Âge
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-map-marker-alt me-1"></i>Ville
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-calendar-alt me-1"></i>Ajouté le
+                                </th>
+                                <th scope="col" class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for client in clients %}
+                            <tr data-sex="{{ client.sexClient }}" data-age="{{ client.ageClient }}">
+                                <td class="fw-bold">{{ forloop.counter }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                                            {{ client.nomClient|first|upper }}
+                                        </div>
+                                        <strong>{{ client.nomClient|title }}</strong>
+                                    </div>
+                                </td>
+                                <td>
+                                    <a href="mailto:{{ client.emailClient }}" class="text-decoration-none">
+                                        {{ client.emailClient }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {% if client.telephoneClient %}
+                                        <a href="tel:{{ client.telephoneClient }}" class="text-decoration-none">
+                                            {{ client.telephoneClient }}
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">Non renseigné</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if client.sexClient == 'Masculin' %}
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-mars me-1"></i>Masculin
+                                        </span>
+                                    {% elif client.sexClient == 'Feminin' %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-venus me-1"></i>Féminin
+                                        </span>
+                                
+                                    {% else %}
+                                        <span class="text-muted">Non défini</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if client.ageClient %}
+                                        <span class="badge bg-light text-dark">{{ client.ageClient }}</span>
+                                    {% else %}
+                                        <span class="text-muted">Non défini</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if client.villeClient %}
+                                        <i class="fas fa-map-marker-alt text-muted me-1"></i>{{ client.villeClient|title }}
+                                    {% else %}
+                                        <span class="text-muted">Non renseignée</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if client.dateCreationClient %}
+                                        {{ client.dateCreationClient|date:"d/m/Y" }}
+                                    {% else %}
+                                        <span class="text-muted">Non définie</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'details-clients' client.id %}" class="btn btn-sm btn-outline-info" title="Voir détails">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'update-client' client.id %}" class="btn btn-sm btn-outline-warning" title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Supprimer" onclick="confirmDelete('{{ client.id }}', '{{ client.nomClient }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <nav aria-label="Pagination des clients">
+                    <ul class="pagination justify-content-center mt-4">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">&laquo; Première</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Précédente</a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Suivante</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Dernière &raquo;</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+            {% else %}
+                <!-- Message si aucun client -->
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-5x text-muted mb-3"></i>
+                    <h3 class="text-muted">Aucun client trouvé</h3>
+                    <p class="text-muted">Commencez par ajouter votre premier client</p>
+                    <a href="{% url 'create-client' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Ajouter le premier client
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirmer la suppression
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer le client <strong id="clientName"></strong> ?</p>
+                <p class="text-danger"><small>Cette action est irréversible.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form method="post" id="deleteForm" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Supprimer
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Recherche en temps réel
+    const searchInput = document.getElementById('searchInput');
+    const filterSex = document.getElementById('filterSex');
+    const filterAge = document.getElementById('filterAge');
+    const table = document.getElementById('clientsTable');
+    
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const sexFilter = filterSex.value;
+        const ageFilter = filterAge.value;
+        const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
         
-    {% endfor %}
-           
-  </ul>
-</ul>
- 
+        for (let row of rows) {
+            const cells = row.getElementsByTagName('td');
+            const name = cells[1].textContent.toLowerCase();
+            const email = cells[2].textContent.toLowerCase();
+            const phone = cells[3].textContent.toLowerCase();
+            const sex = row.getAttribute('data-sex');
+            const age = row.getAttribute('data-age');
+            
+            const matchesSearch = name.includes(searchTerm) || 
+                                email.includes(searchTerm) || 
+                                phone.includes(searchTerm);
+            const matchesSex = !sexFilter || sex === sexFilter;
+            const matchesAge = !ageFilter || age === ageFilter;
+            
+            if (matchesSearch && matchesSex && matchesAge) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    }
+    
+    searchInput.addEventListener('keyup', filterTable);
+    filterSex.addEventListener('change', filterTable);
+    filterAge.addEventListener('change', filterTable);
+});
+
+// Fonction de confirmation de suppression
+function confirmDelete(clientId, clientName) {
+    document.getElementById('clientName').textContent = clientName;
+    document.getElementById('deleteForm').action = `/clients/<int:id>/delete/${clientId}/`;
+    
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+</script>
+
+<style>
+.avatar {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+}
+
+.btn-group .btn {
+    border-radius: 0;
+}
+
+.btn-group .btn:first-child {
+    border-top-left-radius: 0.375rem;
+    border-bottom-left-radius: 0.375rem;
+}
+
+.btn-group .btn:last-child {
+    border-top-right-radius: 0.375rem;
+    border-bottom-right-radius: 0.375rem;
+}
+
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .btn-group .btn {
+        border-radius: 0.375rem !important;
+        margin-bottom: 2px;
+    }
+}
+</style>
 {% endblock %}
- 

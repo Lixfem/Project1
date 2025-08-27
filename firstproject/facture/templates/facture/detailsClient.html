@@ -1,17 +1,318 @@
 {% extends 'facture/base.html' %}
 
 {% block content %}
-    <h2>{{ client.nomClient }}</h2>
-    <ul>
-        <li>Adresse du client: {{client.adresseClient}}</li>
-        <li>Numéro de téléphone du client : {{client.telephoneClient}} </li>
-        <li>Adresse mail du client : {{client.emailClient}}</li>
-        <li>Sexe : {{client.sexClient}} </li>
-        <li>Age du client : {{client.ageClient}} </li>
-        <li>Ville du client :{{client.villeClient}} </li>
-        <li>Date du client : {{client.dateCreationClient}} </li>
-    </ul>
+<div class="container-fluid mt-4">
+    <!-- Breadcrumb et navigation -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
 
-    <a href="{%url 'liste-clients'%}">Retour à tous les clients</a>
-    <a href="{% url 'update-client' client.id %}"> Modifier ce client</a>
+            <li class="breadcrumb-item">
+                <a href="{% url 'liste-clients' %}">
+                    <i class="fas fa-users"></i> Clients
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {{ client.nomClient|title }}
+            </li>
+        </ol>
+    </nav>
+
+    <!-- En-tête avec avatar et informations principales -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="bg-gradient-primary text-white p-4 rounded-lg shadow">
+                <div class="row align-items-center">
+                    <div class="col-md-2 text-center">
+                        <div class="avatar-xl bg-white text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 mb-md-0" style="width: 80px; height: 80px; font-size: 2rem; font-weight: bold;">
+                            {{ client.nomClient|first|upper }}{{ client.nomClient|slice:"1:2"|upper }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h1 class="h3 mb-1">{{ client.nomClient|title }}</h1>
+                        <p class="mb-1">
+                            <i class="fas fa-envelope me-2"></i>
+                            <a href="mailto:{{ client.emailClient }}" class="text-white text-decoration-none">
+                                {{ client.emailClient }}
+                            </a>
+                        </p>
+                        {% if client.telephoneClient %}
+                        <p class="mb-0">
+                            <i class="fas fa-phone me-2"></i>
+                            <a href="tel:{{ client.telephoneClient }}" class="text-white text-decoration-none">
+                                {{ client.telephoneClient }}
+                            </a>
+                        </p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'update-client' client.id %}" class="btn btn-outline-light">
+                                <i class="fas fa-edit me-2"></i>Modifier
+                            </a>
+                            <button type="button" class="btn btn-outline-light" onclick="confirmDelete('{{ client.id }}', '{{ client.nomClient }}')">
+                                <i class="fas fa-trash me-2"></i>Supprimer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Colonne gauche - Informations personnelles -->
+        <div class="col-md-6">
+            <!-- Informations de base -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user text-primary me-2"></i>
+                        Informations personnelles
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-6 mb-3">
+                            <label class="form-label text-muted fw-bold">Nom complet</label>
+                            <p class="mb-0">{{ client.nomClient|title }}</p>
+                        </div>
+                        <div class="col-sm-6 mb-3">
+                            <label class="form-label text-muted fw-bold">Email</label>
+                            <p class="mb-0">
+                                <a href="mailto:{{ client.emailClient }}" class="text-decoration-none">
+                                    {{ client.emailClient }}
+                                </a>
+                            </p>
+                        </div>
+                        <div class="col-sm-6 mb-3">
+                            <label class="form-label text-muted fw-bold">Téléphone</label>
+                            <p class="mb-0">
+                                {% if client.telephoneClient %}
+                                    <a href="tel:{{ client.telephoneClient }}" class="text-decoration-none">
+                                        {{ client.telephoneClient }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">Non renseigné</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-sm-6 mb-3">
+                            <label class="form-label text-muted fw-bold">Sexe</label>
+                            <p class="mb-0">
+                                {% if client.sexClient == 'Masculin' %}
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-mars me-1"></i>Masculin
+                                    </span>
+                                {% elif client.sexClient == 'Féminin' %}
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-venus me-1"></i>Féminin
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">Non défini</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-sm-6 mb-3">
+                            <label class="form-label text-muted fw-bold">Tranche d'âge</label>
+                            <p class="mb-0">
+                                {% if client.ageClient %}
+                                    <span class="badge bg-light text-dark">{{ client.ageClient }}</span>
+                                {% else %}
+                                    <span class="text-muted">Non définie</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Adresse -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                        Adresse
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-12 mb-3">
+                            <label class="form-label text-muted fw-bold">Adresse complète</label>
+                            <p class="mb-0">
+                                {% if client.adresseClient %}
+                                    {{ client.adresseClient|title }}
+                                {% else %}
+                                    <span class="text-muted">Non renseignée</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-sm-6 mb-3">
+                            <label class="form-label text-muted fw-bold">Ville</label>
+                            <p class="mb-0">
+                                {% if client.villeClient %}
+                                    <i class="fas fa-city text-muted me-2"></i>{{ client.villeClient|title }}
+                                {% else %}
+                                    <span class="text-muted">Non renseignée</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Colonne droite - Informations système et activités -->
+        <div class="col-md-6">
+            <!-- Informations système -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cog text-primary me-2"></i>
+                        Informations système
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-6 mb-3">
+                            <label class="form-label text-muted fw-bold">Date de création</label>
+                            <p class="mb-0">
+                                {% if client.dateCreationClient %}
+                                    <i class="fas fa-calendar-alt text-muted me-2"></i>
+                                    {{ client.dateCreationClient|date:"d/m/Y à H:i" }}
+                                {% else %}
+                                    <span class="text-muted">Non définie</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        
+                        <div class="col-sm-12 mb-3">
+                            <label class="form-label text-muted fw-bold">Ajouté par</label>
+                            <p class="mb-0">
+                                {% if client.clientSaveBy %}
+                                    <i class="fas fa-user-shield text-muted me-2"></i>
+                                    {{ client.clientSaveBy.get_full_name|default:client.clientSaveBy.username }}
+                                {% else %}
+                                    <span class="text-muted">Utilisateur inconnu</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <!-- Actions rapides -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt text-primary me-2"></i>
+                        Actions rapides
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-primary">
+                            <i class="fas fa-file-invoice me-2"></i>
+                            Nouvelle facture
+                        </a>
+                        <a href="#" class="btn btn-info">
+                            <i class="fas fa-file-alt me-2"></i>
+                            Nouveau devis
+                        </a>
+                        <a href="mailto:{{ client.emailClient }}" class="btn btn-success">
+                            <i class="fas fa-envelope me-2"></i>
+                            Envoyer un email
+                        </a>
+        
+                    </div>
+                </div>
+            </div> 
+        </div>
+    </div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirmer la suppression
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer le client <strong id="clientName"></strong> ?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Attention :</strong> Cette action supprimera également toutes les factures et devis associés à ce client.
+                </div>
+                <p class="text-danger"><small>Cette action est irréversible.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form method="post" id="deleteForm" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Supprimer définitivement
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Fonction de confirmation de suppression
+function confirmDelete(clientId, clientName) {
+    document.getElementById('clientName').textContent = clientName;
+    document.getElementById('deleteForm').action = `/clients/<int:id>/delete/${clientId}/`;
+    
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+</script>
+
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.avatar-xl {
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.2);
+}
+
+.card {
+    border: none;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+
+.border-end:last-child {
+    border-right: none !important;
+}
+
+@media (max-width: 768px) {
+    .bg-gradient-primary .row {
+        text-align: center;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-group .btn {
+        border-radius: 0.375rem !important;
+        margin-bottom: 5px;
+    }
+}
+</style>
 {% endblock %}
