@@ -1,0 +1,149 @@
+{% extends 'facture/base.html' %}
+
+{% block title %}Détails de la facture #{{facture.numeroFacture}}{% endblock %}
+
+
+{% block content %}
+<div class="invoice-container">
+    <!-- En-tête de la facture -->
+    <div class="invoice-header">
+        <h1>Facture</h1>
+        <div class="invoice-number">N° {{facture.numeroFacture}}</div>
+    </div>
+    
+    <div class="invoice-body">
+        <!-- Informations client -->
+        <div class="info-section">
+            <h3>📋 Informations Client</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Nom :</span>
+                    <span class="info-value">{{client.clientFacture|default:"Non spécifié"}}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Email :</span>
+                    <span class="info-value">{{client.emailClient|default:"Non spécifié"}}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Téléphone :</span>
+                    <span class="info-value">{{client.telephoneClient|default:"Non spécifié"}}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Adresse :</span>
+                    <span class="info-value">{{client.adresseClient|default:"Non spécifiée"}}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Informations facture -->
+        <div class="info-section">
+            <h3>📄 Détails de la Facture</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Date de création :</span>
+                    <span class="info-value">{{facture.dateCreationFacture|date:"d/m/Y à H:i"}}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Dernière MAJ :</span>
+                    <span class="info-value">{{facture.lastUpdateFacture|date:"d/m/Y à H:i"}}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Créée par :</span>
+                    <span class="info-value">{{facture.factureSaveBy|default:"Système"}}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Statut :</span>
+                    <span class="info-value">
+                        {% if facture.statutFacture == 'Payée' or facture.statutFacture == 'PAID' %}
+                            <span class="status-badge status-paid">{{facture.statutFacture}}</span>
+                        {% elif facture.statutFacture == 'En attente' or facture.statutFacture == 'PENDING' %}
+                            <span class="status-badge status-pending">{{facture.statutFacture}}</span>
+                        {% else %}
+                            <span class="status-badge status-overdue">{{facture.statutFacture}}</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Montant total -->
+        <div class="info-section">
+            <h3>💰 Montant</h3>
+            <div class="total-amount">
+                {{facture.totalFacture|floatformat:2}} Francs CFA
+            </div>
+        </div>
+        
+        <!-- Commentaires -->
+        {% if facture.commentaireFacture %}
+        <div class="info-section">
+            <h3>💭 Commentaire</h3>
+            <div class="comment-section">
+                {{facture.commentaireFacture|linebreaks}}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Actions -->
+        <div class="actions">
+            <a href="{% url 'liste-facture' %}" class="btn btn-secondary">
+                ← Retour à la liste
+            </a>
+            
+            {% if perms.facture.change_facture %}
+            <a href="#" class="btn btn-primary">
+                ✏️ Modifier
+            </a>
+            {% endif %}
+            
+            <a href="#" class="btn btn-success" target="_blank">
+                🖨️ Imprimer
+            </a>
+            
+            {% if facture.statutFacture != 'Payée' %}
+            <a href="#" class="btn btn-warning" 
+               onclick="return confirm('Marquer cette facture comme payée ?')">
+                ✅ Marquer payée
+            </a>
+            {% endif %}
+            
+            {% if perms.facture.delete_facture %}
+            <a href="#" class="btn btn-danger" 
+               onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette facture ?')"
+               style="background: #dc3545;">
+                🗑️ Supprimer
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animation d'entrée
+    const container = document.querySelector('.invoice-container');
+    container.style.opacity = '0';
+    container.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+        container.style.transition = 'all 0.5s ease';
+        container.style.opacity = '1';
+        container.style.transform = 'translateY(0)';
+    }, 100);
+    
+    // Effet hover sur les boutons
+    const buttons = document.querySelectorAll('.btn');
+    buttons.forEach(btn => {
+        btn.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+        });
+        
+        btn.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock %}
