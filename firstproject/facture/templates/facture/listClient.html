@@ -180,7 +180,7 @@
                                         <a href="{% url 'update-client' client.id %}" class="btn btn-sm btn-outline-warning" title="Modifier">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Supprimer" onclick="confirmDelete('{{ client.id }}', '{{ client.nomClient }}')">
+                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Supprimer" onclick="confirmDelete('{{ client.id }}', '{{ client.nomClient }}', '{% url 'delete-client' client.id %}')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -263,7 +263,7 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                 <form method="post" id="deleteForm" style="display: inline;">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">
+                    <button type="submit" class="btn btn-danger"  >
                         <i class="fas fa-trash me-2"></i>Supprimer
                     </button>
                 </form>
@@ -314,9 +314,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Fonction de confirmation de suppression
-function confirmDelete(clientId, clientName) {
+function confirmDelete(clientId, clientName,deleteUrl) {
     document.getElementById('clientName').textContent = clientName;
-    document.getElementById('deleteForm').action = `/clients/<int:id>/delete/${clientId}/`;
+    document.getElementById('deleteForm').action = deleteUrl;
     
     const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
     modal.show();

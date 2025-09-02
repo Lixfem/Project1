@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
-from datetime import date, timedelta
+from datetime import date, timedelta,datetime
 import uuid
 
 class Client(models.Model):
@@ -64,6 +64,11 @@ class Facturation(models.Model):
         return services.montantDuService
     
 
+
+    def __str__(self):
+        return self.numeroFacture
+    
+
 class Devis(models.Model):
     STATUT_ATTENTE_DEVIS = 1
     STATUT_ACCEPTE_DEVIS = 2
@@ -102,7 +107,7 @@ class Produit(models.Model):
          #Definition des clé primaire 
 
      factureProduit = models.ForeignKey(Facturation, on_delete=models.CASCADE)
-     devisProduit = models.ForeignKey(Devis, on_delete=models.CASCADE)
+     devisProduit = models.ForeignKey(Devis, on_delete=models.CASCADE,null=True,blank=True)
      ###################
      nomProduit = models.fields.CharField(max_length= 40) 
      descriptionProduit = models.fields.CharField(max_length=400) 
@@ -125,7 +130,7 @@ class Service(models.Model):
     datePrestationService = models.fields.DateField(blank=True,null=True,auto_now=True)
     #Definition des clé primaire 
     factureService = models.ForeignKey(Facturation,on_delete=models.CASCADE)
-    devisService = models.ForeignKey(Devis,on_delete=models.CASCADE)
+    devisService = models.ForeignKey(Devis,on_delete=models.CASCADE, null=True,blank=True)
     #################
     def __str__(self):
         return f'{self.nomService}'
