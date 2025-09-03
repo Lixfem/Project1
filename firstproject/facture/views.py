@@ -202,10 +202,29 @@ def detailsClient(request,id):
 
 
 def listfacture(request):
+    if request.method == 'POST' and request.POST.get('id_modified'):
+        try:
+            facture = Facturation.objects.get(id=request.POST.get('id_modified'))
+            statut = int(request.POST.get('modified'))  # Convert to integer
+            if statut in [Facturation.STATUT_PAYE, Facturation.STATUT_EN_ATTENTE, Facturation.STATUT_ANNULE]:
+                facture.statutFacture = statut
+                facture.paid = (statut == Facturation.STATUT_PAYE)
+                # Update lastUpdateFacture (recommended) or dateCreationFacture (if explicitly desired)
+                facture.lastUpdateFacture = timezone.now()  # Recommended
+                # facture.dateCreationFacture = timezone.now()  # Uncomment if you explicitly want to update creation date
+                facture.save()
+                messages.success(request, "Facture modifiée avec succès.")
+            else:
+                messages.error(request, "Statut invalide.")
+        except Facturation.DoesNotExist:
+            messages.error(request, "Facture non trouvée.")
+        except ValueError:
+            messages.error(request, "Valeur de statut invalide.")
+        return redirect('liste-facture')
+
     factures = Facturation.objects.all().order_by('-dateCreationFacture')
     paginated_factures = paginate_queryset(request, factures, per_page=10)
     context = {'factures': paginated_factures} 
-
     return render(request,
                   'facture/listeFacture.html', context)
 
@@ -233,17 +252,7 @@ def addClient(request):
                   'facture/ajouterClient.html',
                   {'form':form})
 
-def createClient(request):
-    if request.method == 'POST':
-        form = ClientForm(request.POST)
-        if form.is_valid():
-            client = form.save()
 
-            return redirect('details-clients',client.id)
-    else:
-        form = ClientForm()
-    return render(request,
-                  'facture/client_create.html',{'form':form})
 
 
 def changeClient(request,id):
@@ -257,6 +266,7 @@ def changeClient(request,id):
         form = ClientForm(instance=client)
     return render(request,
                   'facture/client_update.html',{'form':form})
+
 
 
 def deleteClient(request,id):
