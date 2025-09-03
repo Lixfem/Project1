@@ -88,7 +88,18 @@
             <label for="total_general" class="form-label">Total Général</label>
             <input type="number" class="form-control" id="total_general" name="total_general" readonly>
         </div>
+        <div class="mb-3">
+            <label for="statut_facture" class="form-label">Statut de la Facture</label>
+            <select name="statut_facture" class="form-select" id="statut_facture">
+                    <option value="" disabled selected>Selectionner un statut</option>
+                    <option value="1">Payé</option>
+                    <option value="2">En Attente</option>
+                    <option value="3">Annulée</option>
+            </select>
+               
 
+
+        </div>
         <!-- Commentaire -->
         <div class="mb-3">
             <label for="commentaireFacture" class="form-label">Commentaires</label>

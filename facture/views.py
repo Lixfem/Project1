@@ -13,6 +13,8 @@ import logging
 from django.contrib.auth.mixins import LoginRequiredMixin
 from decimal import Decimal
 from datetime import datetime
+from utils import paginate_queryset
+
 
 class HomeView(View):
     template_name = 'facture/index.html'
@@ -93,6 +95,7 @@ class addFactureView(LoginRequiredMixin, View):
             numero_facture = self.generate_numero_facture()
             total_general = request.POST.get('total_general')  # Correction du nom
             commentaire_facture = request.POST.get('commentaireFacture')
+            statut_facture = request.POST.get('statut_facture')
             
             # Validation des données obligatoires
             if not client_id or not numero_facture:
@@ -117,6 +120,7 @@ class addFactureView(LoginRequiredMixin, View):
                 clientFacture=client,
                 factureSaveBy=request.user,
                 totalFacture=float(total_general) if total_general else 0.0,
+                statutFacture = statut_facture ,
                 commentaireFacture=commentaire_facture or ''
             )
             
@@ -198,9 +202,12 @@ def detailsClient(request,id):
 
 
 def listfacture(request):
-    factures = Facturation.objects.all()
+    factures = Facturation.objects.all().order_by('-dateCreationFacture')
+    paginated_factures = paginate_queryset(request, factures, per_page=10)
+    context = {'factures': paginated_factures} 
+
     return render(request,
-                  'facture/listeFacture.html', {'factures': factures})
+                  'facture/listeFacture.html', context)
 
 def detailsFacture(request,id):
     facture = Facturation.objects.get(id=id)
