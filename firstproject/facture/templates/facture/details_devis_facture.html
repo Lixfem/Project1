@@ -1,0 +1,698 @@
+{% extends 'facture/base.html' %}
+{% block title %}
+    {% if devis %}
+        Devis {{ devis.numeroDevis }}
+    {% else %}
+        Facture {{ facture.numeroFacture }}
+    {% endif %}
+{% endblock %}
+{% block content %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Arial', sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background-color: #f8f9fa;
+    }
+
+    .container {
+        max-width: 210mm;
+        margin: 20px auto;
+        background: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: hidden;
+        padding-bottom: 20px;
+    }
+
+    .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+    }
+
+    .header h1 {
+        font-size: 2.5em;
+        font-weight: 300;
+        margin-bottom: 10px;
+    }
+
+    .document-info {
+        background: #f8f9fa;
+        padding: 20px 30px;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 20px;
+    }
+
+    .info-section h3 {
+        color: #495057;
+        font-size: 1.1em;
+        margin-bottom: 15px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #667eea;
+    }
+
+    .info-item {
+        margin-bottom: 8px;
+    }
+
+    .label {
+        font-weight: 600;
+        color: #6c757d;
+        display: inline-block;
+        width: 120px;
+    }
+
+    .value {
+        color: #495057;
+    }
+
+    .status {
+        display: inline-block;
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status.paye {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status.attente {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .status.annule {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .status.accepte {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status.refuse {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .status.transforme {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .content {
+        padding: 30px;
+    }
+
+    .section {
+        margin-bottom: 30px;
+    }
+
+    .section-title {
+        font-size: 1.3em;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 20px;
+        padding: 10px 0;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .table th {
+        background: #667eea;
+        color: white;
+        padding: 15px 12px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.95em;
+    }
+
+    .table td {
+        padding: 15px 12px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .table tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .total-section {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .total-row:last-child {
+        border-bottom: 2px solid #667eea;
+        font-weight: 700;
+        font-size: 1.2em;
+        color: #495057;
+    }
+
+    .total-row.final {
+        background: white;
+        margin: 15px -25px -25px;
+        padding: 20px 25px;
+        border-radius: 0 0 8px 8px;
+    }
+
+    .comments {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+    }
+
+    .comments h4 {
+        color: #495057;
+        margin-bottom: 10px;
+    }
+
+    .actions {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+        padding: 20px;
+    }
+
+    .btn {
+        padding: 12px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.95em;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: #667eea;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #5a67d8;
+        transform: translateY(-1px);
+    }
+
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #218838;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-1px);
+    }
+
+    .no-print {
+        display: block;
+    }
+
+    @media print {
+        body {
+            background: white;
+        }
+        
+        .container {
+            box-shadow: none;
+            margin: 0;
+            border-radius: 0;
+        }
+        
+        .no-print {
+            display: none !important;
+        }
+        
+        .actions {
+            display: none;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .container {
+            margin: 10px;
+        }
+        
+        .header {
+            padding: 20px;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+        }
+        
+        .actions {
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px 10px;
+        }
+        
+        .table {
+            font-size: 0.9em;
+        }
+    }
+</style>
+
+<div class="container">
+    <!-- En-tête -->
+    <div class="header">
+        <h1>
+            {% if devis %}
+                DEVIS
+            {% else %}
+                FACTURE
+            {% endif %}
+        </h1>
+        <p>
+            {% if devis %}
+                N° {{ devis.numeroDevis }}
+            {% else %}
+                N° {{ facture.numeroFacture }}
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Informations du document -->
+    <div class="document-info">
+        <div class="info-grid">
+            <!-- Informations entreprise -->
+            <div class="info-section">
+                <h3>Entreprise</h3>
+                <div class="info-item">
+                    <span class="label">Nom :</span>
+                    <span class="value">Votre Entreprise SARL</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Adresse :</span>
+                    <span class="value">Patte d'oie<br>75000 Ouagadougou, Burkina Faso</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Téléphone :</span>
+                    <span class="value">0000000</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Email :</span>
+                    <span class="value">contact@entreprise.fr</span>
+                </div>
+            </div>
+
+            <!-- Informations client -->
+            <div class="info-section">
+                <h3>Client</h3>
+                <div class="info-item">
+                    <span class="label">Nom :</span>
+                    <span class="value">
+                        {% if devis %}
+                            {{ devis.clientDevis.nomClient }}
+                        {% else %}
+                            {{ facture.clientFacture.nomClient }}
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Email :</span>
+                    <span class="value">
+                        {% if devis %}
+                            {{ devis.clientDevis.emailClient }}
+                        {% else %}
+                            {{ facture.clientFacture.emailClient }}
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Téléphone :</span>
+                    <span class="value">
+                        {% if devis %}
+                            {{ devis.clientDevis.telephoneClient }}
+                        {% else %}
+                            {{ facture.clientFacture.telephoneClient }}
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Adresse :</span>
+                    <span class="value">
+                        {% if devis %}
+                            {{ devis.clientDevis.adresseClient }}<br>{{ devis.clientDevis.villeClient }}
+                        {% else %}
+                            {{ facture.clientFacture.adresseClient }}<br>{{ facture.clientFacture.villeClient }}
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations du document -->
+        <div class="info-grid">
+            <div class="info-section">
+                <h3>Informations du document</h3>
+                <div class="info-item">
+                    <span class="label">Date :</span>
+                    <span class="value">
+                        {% if devis %}
+                            {{ devis.dateCreationDevis|date:"d/m/Y" }}
+                        {% else %}
+                            {{ facture.dateCreationFacture|date:"d/m/Y" }}
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Statut :</span>
+                    <span class="value">
+                        {% if devis %}
+                            {% if devis.statutDevis == 1 %}
+                                <span class="status attente">En Attente</span>
+                            {% elif devis.statutDevis == 2 %}
+                                <span class="status accepte">Accepté</span>
+                            {% elif devis.statutDevis == 3 %}
+                                <span class="status refuse">Refusé</span>
+                            {% elif devis.statutDevis == 4 %}
+                                <span class="status transforme">Transformé en facture</span>
+                            {% endif %}
+                        {% else %}
+                            {% if facture.statutFacture == 1 %}
+                                <span class="status paye">Payé</span>
+                            {% elif facture.statutFacture == 2 %}
+                                <span class="status attente">En Attente</span>
+                            {% elif facture.statutFacture == 3 %}
+                                <span class="status annule">Annulée</span>
+                            {% endif %}
+                        {% endif %}
+                    </span>
+                </div>
+                {% if facture %}
+                    <div class="info-item">
+                        <span class="label">Payé :</span>
+                        <span class="value">
+                            {% if facture.paid %}
+                                <span class="status paye">✓ Oui</span>
+                            {% else %}
+                                <span class="status attente">✗ Non</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% if facture.devis_origine %}
+                        <div class="info-item">
+                            <span class="label">Devis origine :</span>
+                            <span class="value">{{ facture.devis_origine.numeroDevis }}</span>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            <div class="info-section">
+                <h3>Créé par</h3>
+                <div class="info-item">
+                    <span class="label">Utilisateur :</span>
+                    <span class="value">
+                        {% if devis %}
+                            {{ devis.devisSaveBy.get_full_name|default:devis.devisSaveBy.username }}
+                        {% else %}
+                            {{ facture.factureSaveBy.get_full_name|default:facture.factureSaveBy.username }}
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Dernière MAJ :</span>
+                    <span class="value">
+                        {% if devis %}
+                            {{ devis.lastUpdateDevis|date:"d/m/Y H:i" }}
+                        {% else %}
+                            {{ facture.lastUpdateFacture|date:"d/m/Y H:i" }}
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenu principal -->
+    <div class="content">
+        <!-- Section Produits -->
+        {% if devis %}
+            {% if devis.devisProduit_set.all %}
+                <div class="section">
+                    <h2 class="section-title">Produits</h2>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Produit</th>
+                                <th>Description</th>
+                                <th class="text-center">Quantité</th>
+                                <th class="text-right">Prix unitaire</th>
+                                <th class="text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for produit in devis.devisProduit_set.all %}
+                                <tr>
+                                    <td><strong>{{ produit.nomProduit }}</strong></td>
+                                    <td>{{ produit.descriptionProduit }}</td>
+                                    <td class="text-center">{{ produit.quantity }}</td>
+                                    <td class="text-right">{{ produit.prixUnitaireProduit|floatformat:2 }} CFA</td>
+                                    <td class="text-right"><strong>{{ produit.get_total|floatformat:2 }} CFA</strong></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+
+            {% if devis.service_set.all %}
+                <div class="section">
+                    <h2 class="section-title">Services</h2>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Description</th>
+                                <th class="text-center">Date de prestation</th>
+                                <th class="text-right">Montant</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service in devis.service_set.all %}
+                                <tr>
+                                    <td><strong>{{ service.nomService }}</strong></td>
+                                    <td>{{ service.descriptionService }}</td>
+                                    <td class="text-center">{{ service.datePrestationService|date:"d/m/Y"|default:"Non définie" }}</td>
+                                    <td class="text-right"><strong>{{ service.montantDuService|floatformat:2 }} CFA</strong></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        {% else %}
+            {% if facture.produit_set.all %}
+                <div class="section">
+                    <h2 class="section-title">Produits</h2>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Produit</th>
+                                <th>Description</th>
+                                <th class="text-center">Quantité</th>
+                                <th class="text-right">Prix unitaire</th>
+                                <th class="text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for produit in facture.produit_set.all %}
+                                <tr>
+                                    <td><strong>{{ produit.nomProduit }}</strong></td>
+                                    <td>{{ produit.descriptionProduit }}</td>
+                                    <td class="text-center">{{ produit.quantity }}</td>
+                                    <td class="text-right">{{ produit.prixUnitaireProduit|floatformat:2 }} CFA</td>
+                                    <td class="text-right"><strong>{{ produit.get_total|floatformat:2 }} CFA</strong></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+
+            {% if facture.service_set.all %}
+                <div class="section">
+                    <h2 class="section-title">Services</h2>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Description</th>
+                                <th class="text-center">Date de prestation</th>
+                                <th class="text-right">Montant</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service in facture.service_set.all %}
+                                <tr>
+                                    <td><strong>{{ service.nomService }}</strong></td>
+                                    <td>{{ service.descriptionService }}</td>
+                                    <td class="text-center">{{ service.datePrestationService|date:"d/m/Y"|default:"Non définie" }}</td>
+                                    <td class="text-right"><strong>{{ service.montantDuService|floatformat:2 }} CFA</strong></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        {% endif %}
+
+        <!-- Section Totaux -->
+        <div class="total-section">
+            <div class="total-row">
+                <span>Sous-total produits :</span>
+                <span>
+                    {% if devis %}
+                        {{ devis.get_total|floatformat:2 }} CFA
+                    {% else %}
+                        {{ facture.get_total|floatformat:2 }} CFA
+                    {% endif %}
+                </span>
+            </div>
+            <div class="total-row">
+                <span>Sous-total services :</span>
+                <span>
+                    {% if devis %}
+                        {{ devis.get_montantDuService|floatformat:2 }} CFA
+                    {% else %}
+                        {{ facture.get_montantService|floatformat:2 }} CFA
+                    {% endif %}
+                </span>
+            </div>
+            <div class="total-row final">
+                <span>TOTAL TTC :</span>
+                <span>
+                    {% if devis %}
+                        {{ devis.totalDevis|floatformat:2 }} CFA
+                    {% else %}
+                        {{ facture.totalFacture|floatformat:2 }} CFA
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        <!-- Commentaires -->
+        {% if devis and devis.commentaireDevis or facture and facture.commentaireFacture %}
+            <div class="section">
+                <div class="comments">
+                    <h4>Commentaires :</h4>
+                    <p>
+                        {% if devis %}
+                            {{ devis.commentaireDevis|linebreaks }}
+                        {% else %}
+                            {{ facture.commentaireFacture|linebreaks }}
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Actions pour devis -->
+        {% if devis and devis.peut_etre_transforme %}
+            <div class="section no-print">
+                <div style="text-align: center; padding: 20px; background: #e8f5e8; border-radius: 8px;">
+                    <p style="margin-bottom: 15px; color: #155724;">Ce devis accepté peut être transformé en facture.</p>
+                    <a href="{% url 'transform_devis_to_facture' devis.id %}" class="btn btn-success">
+                        🔄 Transformer en facture
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Action buttons -->
+        <div class="actions no-print">
+            <button onclick="window.print()" class="btn btn-primary">
+                🖨️ Imprimer
+            </button>
+            <a href="#" 
+               class="btn btn-success">
+                📄 Télécharger PDF
+            </a>
+            <a href="{% if devis %}{% url 'liste-devis' %}{% else %}{% url 'liste-facture' %}{% endif %}" 
+               class="btn btn-secondary">
+                ← Retour
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Impression automatique si paramètre dans l'URL
+    if (window.location.search.includes('print=true')) {
+        window.print();
+    }
+</script>
+{% endblock %}

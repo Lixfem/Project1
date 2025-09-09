@@ -1,0 +1,254 @@
+{% extends 'facture/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Ajouter un Devis</h2>
+
+    {% if messages %}
+        <div class="alert-container">
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'success' %}success{% else %}danger{% endif %} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form   method="POST" action="{% url 'create-devis' %}">
+        {% csrf_token %}
+        
+        <!-- Client Selection -->
+        <div class="mb-3">
+            <label for="client" class="form-label">Client</label>
+            <select class="form-select" id="client" name="client" required>
+                <option value="" disabled selected>Sélectionner un client</option>
+                {% for client in clients %}
+                    <option value="{{ client.id }}">{{ client.nomClient }} </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Produits -->
+        <div class="mb-3">
+            <h4>Produits</h4>
+            <div id="produits-container">
+                <div class="produit-item mb-3">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="produit" class="form-label">Nom du Produit</label>
+                            <input type="text" class="form-control" name="produits[0][nom]" >
+                        </div>
+                        <div class="col-md-2">
+                            <label for="quantity" class="form-label">Quantité</label>
+                            <input type="number" class="form-control quantity" name="produits[0][quantity]" min="1" >
+                        </div>
+                        <div class="col-md-2">
+                            <label for="unit_price" class="form-label">Prix Unitaire</label>
+                            <input type="number" class="form-control unit-price" name="produits[0][unit_price]" min="0" step="0.01" >
+                        </div>
+                        <div class="col-md-2">
+                            <label for="total_price" class="form-label">Total</label>
+                            <input type="number" class="form-control total-price" name="produits[0][total_price]" readonly>
+                        </div>
+                        <div class="col-md-2 align-self-end">
+                            <button type="button" class="btn btn-danger remove-produit">Supprimer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-primary" id="add-produit">Ajouter un Produit</button>
+        </div>
+
+        <!-- Services -->
+        <div class="mb-3">
+            <h4>Services</h4>
+            <div id="services-container">
+                <div class="service-item mb-3">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="service" class="form-label">Nom du Service</label>
+                            <input type="text" class="form-control" name="services[0][nom]" >
+                        </div>
+                        <div class="col-md-4">
+                            <label for="montant_service" class="form-label">Montant</label>
+                            <input type="number" class="form-control service-price" name="services[0][montant]" min="0" step="0.01" >
+                        </div>
+                        <div class="col-md-2 align-self-end">
+                            <button type="button" class="btn btn-danger remove-service">Supprimer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-primary" id="add-service">Ajouter un Service</button>
+        </div>
+
+        <!-- Total Général -->
+        <div class="mb-3">
+            <label for="total_general" class="form-label">Total Général</label>
+            <input type="number" class="form-control" id="total_general" name="total_general" readonly>
+        </div>
+        <div class="mb-3">
+            <label for="statut_devis" class="form-label">Statut du Devis</label>
+            <select name="statut_devis" class="form-select" id="statut_devis">
+                    <option value="" disabled selected>Selectionner un statut</option>
+                    <option value="1">En Attente</option>
+                    <option value="2">Accepté</option>
+                    <option value="3">Refusé</option>
+            </select>
+               
+
+
+        </div>
+        <!-- Commentaire -->
+        <div class="mb-3">
+            <label for="commentaireDevis" class="form-label">Commentaires</label>
+            <textarea class="form-control" id="commentaireDevis" name="commentaireDevis" rows="4"></textarea>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-success">Enregistrer le Devis</button>
+    </form>
+</div>
+
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- JavaScript for Dynamic Form and Calculations -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let produitIndex = 1;
+    let serviceIndex = 1;
+
+    // Add Product
+    document.getElementById('add-produit').addEventListener('click', function () {
+        const container = document.getElementById('produits-container');
+        const produitItem = document.createElement('div');
+        produitItem.classList.add('produit-item', 'mb-3');
+        produitItem.innerHTML = `
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="produit" class="form-label">Nom du Produit</label>
+                    <input type="text" class="form-control" name="produits[${produitIndex}][nom]" required>
+                </div>
+                <div class="col-md-2">
+                    <label for="quantity" class="form-label">Quantité</label>
+                    <input type="number" class="form-control quantity" name="produits[${produitIndex}][quantity]" min="1" required>
+                </div>
+                <div class="col-md-2">
+                    <label for="unit_price" class="form-label">Prix Unitaire</label>
+                    <input type="number" class="form-control unit-price" name="produits[${produitIndex}][unit_price]" min="0" step="0.01" required>
+                </div>
+                <div class="col-md-2">
+                    <label for="total_price" class="form-label">Total</label>
+                    <input type="number" class="form-control total-price" name="produits[${produitIndex}][total_price]" readonly>
+                </div>
+                <div class="col-md-2 align-self-end">
+                    <button type="button" class="btn btn-danger remove-produit">Supprimer</button>
+                </div>
+            </div>`;
+        container.appendChild(produitItem);
+        produitIndex++;
+        attachEventListeners();
+        updateTotalGeneral();
+    });
+
+    // Add Service
+    document.getElementById('add-service').addEventListener('click', function () {
+        const container = document.getElementById('services-container');
+        const serviceItem = document.createElement('div');
+        serviceItem.classList.add('service-item', 'mb-3');
+        serviceItem.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="service" class="form-label">Nom du Service</label>
+                    <input type="text" class="form-control" name="services[${serviceIndex}][nom]" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="montant_service" class="form-label">Montant</label>
+                    <input type="number" class="form-control service-price" name="services[${serviceIndex}][montant]" min="0" step="0.01" required>
+                </div>
+                <div class="col-md-2 align-self-end">
+                    <button type="button" class="btn btn-danger remove-service">Supprimer</button>
+                </div>
+            </div>`;
+        container.appendChild(serviceItem);
+        serviceIndex++;
+        attachEventListeners();
+        updateTotalGeneral();
+    });
+
+    // Attach Event Listeners for Remove Buttons and Price Calculations
+    function attachEventListeners() {
+        // Remove Product
+        document.querySelectorAll('.remove-produit').forEach(button => {
+            button.removeEventListener('click', removeProduitHandler); // Prevent duplicate listeners
+            button.addEventListener('click', removeProduitHandler);
+        });
+
+        // Remove Service
+        document.querySelectorAll('.remove-service').forEach(button => {
+            button.removeEventListener('click', removeServiceHandler); // Prevent duplicate listeners
+            button.addEventListener('click', removeServiceHandler);
+        });
+
+        // Update Total for Products
+        document.querySelectorAll('.produit-item').forEach(item => {
+            const quantityInput = item.querySelector('.quantity');
+            const unitPriceInput = item.querySelector('.unit-price');
+            const totalPriceInput = item.querySelector('.total-price');
+
+            quantityInput.removeEventListener('input', updateProductTotal); // Prevent duplicate listeners
+            unitPriceInput.removeEventListener('input', updateProductTotal); // Prevent duplicate listeners
+            quantityInput.addEventListener('input', updateProductTotal);
+            unitPriceInput.addEventListener('input', updateProductTotal);
+
+            function updateProductTotal() {
+                const quantity = parseFloat(quantityInput.value) || 0;
+                const unitPrice = parseFloat(unitPriceInput.value) || 0;
+                const total = quantity * unitPrice;
+                totalPriceInput.value = total.toFixed(2);
+                updateTotalGeneral();
+            }
+        });
+
+        // Update Total on Service Price Change
+        document.querySelectorAll('.service-price').forEach(input => {
+            input.removeEventListener('input', updateTotalGeneral); // Prevent duplicate listeners
+            input.addEventListener('input', updateTotalGeneral);
+        });
+    }
+
+    // Handlers for removing items
+    function removeProduitHandler() {
+        this.closest('.produit-item').remove();
+        updateTotalGeneral();
+    }
+
+    function removeServiceHandler() {
+        this.closest('.service-item').remove();
+        updateTotalGeneral();
+    }
+
+    // Calculate Total General
+    function updateTotalGeneral() {
+        let totalGeneral = 0;
+
+        // Sum Product Totals
+        document.querySelectorAll('.total-price').forEach(input => {
+            totalGeneral += parseFloat(input.value) || 0;
+        });
+
+        // Sum Service Totals
+        document.querySelectorAll('.service-price').forEach(input => {
+            totalGeneral += parseFloat(input.value) || 0;
+        });
+
+        document.getElementById('total_general').value = totalGeneral.toFixed(2);
+    }
+
+    // Initialize Event Listeners
+    attachEventListeners();
+});
+</script>
+{% endblock %}

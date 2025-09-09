@@ -37,15 +37,15 @@
                     <div class="row">
                         <div class="col-md-4">
                             <label for="produit" class="form-label">Nom du Produit</label>
-                            <input type="text" class="form-control" name="produits[0][nom]" required>
+                            <input type="text" class="form-control" name="produits[0][nom]" >
                         </div>
                         <div class="col-md-2">
                             <label for="quantity" class="form-label">Quantité</label>
-                            <input type="number" class="form-control quantity" name="produits[0][quantity]" min="1" required>
+                            <input type="number" class="form-control quantity" name="produits[0][quantity]" min="1" >
                         </div>
                         <div class="col-md-2">
                             <label for="unit_price" class="form-label">Prix Unitaire</label>
-                            <input type="number" class="form-control unit-price" name="produits[0][unit_price]" min="0" step="0.01" required>
+                            <input type="number" class="form-control unit-price" name="produits[0][unit_price]" min="0" step="0.01" >
                         </div>
                         <div class="col-md-2">
                             <label for="total_price" class="form-label">Total</label>
@@ -68,11 +68,11 @@
                     <div class="row">
                         <div class="col-md-6">
                             <label for="service" class="form-label">Nom du Service</label>
-                            <input type="text" class="form-control" name="services[0][nom]" required>
+                            <input type="text" class="form-control" name="services[0][nom]" >
                         </div>
                         <div class="col-md-4">
                             <label for="montant_service" class="form-label">Montant</label>
-                            <input type="number" class="form-control service-price" name="services[0][montant]" min="0" step="0.01" required>
+                            <input type="number" class="form-control service-price" name="services[0][montant]" min="0" step="0.01" >
                         </div>
                         <div class="col-md-2 align-self-end">
                             <button type="button" class="btn btn-danger remove-service">Supprimer</button>
