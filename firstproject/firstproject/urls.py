@@ -21,7 +21,7 @@ urlpatterns = [
     # Devis URLs
     path('listdevis/', views.liste_devis, name='liste-devis'),
     path('addDevis/',views.addDevisView.as_view(),name='create-devis'),
-    path('devis/<int:id>/', views.details_devis, name='devis-detail'),
+    path('devis/<int:devis_id>/', views.details_devis, name='devis-detail'),
     path('devis/<int:devis_id>/valider/', views.valider_devis, name='valider_devis'),
     path('devis/<int:devis_id>/transformer/', views.transformer_devis_en_facture, name='transformer_devis'),
     path('devis/<int:devis_id>/envoyer-email/', views.envoyer_devis_email, name='envoyer_devis_email'),
@@ -30,7 +30,8 @@ urlpatterns = [
     #Factures
     path('addFacture/', views.addFactureView.as_view(),name='create-facture'),
     path('facturation/',views.listfacture, name='liste-facture'),
-    path('facturation/<int:id>/',views.detailsFacture,name='details-facture'),
+    path('facturation/<int:facture_id>/',views.detailsFacture,name='details-facture'),
+    path('facturation/<int:facture_id>/modifier/',views.modifier_facture,name='modifier-facture'),
     path('factures/<int:facture_id>/envoyer-email/', views.envoyer_facture_email, name='envoyer_facture_email'),
     path('factures/<int:facture_id>/telecharger-pdf/', views.telecharger_pdf_facture, name='telecharger_pdf_facture'),
 
@@ -41,5 +42,8 @@ urlpatterns = [
     #path('api/devis/<int:devis_id>/transformer/', views.api_transformer_devis, name='api_transformer_devis'),
 
 ]
+
+
+
 
  

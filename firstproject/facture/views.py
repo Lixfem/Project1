@@ -308,29 +308,16 @@ def liste_devis(request):
     return render(request, 'facture/liste_devis.html', context)
 
 # detailsFacture : utilisation de get_object_or_404
-def detailsFacture(request, id):
-    facture = get_object_or_404(Facturation, id=id)
-    context = {
-        'facture': facture,
-        'produits': facture.produit_set.all(),
-        'services': facture.service_set.all(),
-        'total_produits': facture.get_total,
-        'total_services': facture.get_montantService,
-        'devis_origine': facture.devis_origine if hasattr(facture, 'devis_origine') else None,
-    }
-    return render(request, 'facture/details_devis_facture.html', context)
+def detailsFacture(request, facture_id):
+    facture = get_object_or_404(Facturation, id=facture_id)
+   
+    return render(request, 'facture/details_devis_facture.html', {'facture': facture})
+
 
 # detailsdevis
-def details_devis(request,id):
-    devis = get_object_or_404(Devis, id=id)
-    context = {
-        'devis': devis,
-        'produits' : devis.produit_set.all(),
-        'services' : devis.service_set.all(),
-        'total_produits': devis.get_total,
-        'total_service': devis.get_montantDuService,
-    }
-    return render (request, 'facture/details_devis_facture.html' , context)
+def details_devis(request,devis_id):
+    devis = get_object_or_404(Devis, id=devis_id)
+    return render (request, 'facture/details_devis_facture.html' , {'devis':devis})
 
 # Suppression de addClient (redondant avec addCustomerView)
 
@@ -345,6 +332,72 @@ def changeClient(request, id):
     else:
         form = ClientForm(instance=client)
     return render(request, 'facture/client_update.html', {'form': form})
+
+
+# modification facture 
+def modifier_facture(request, facture_id):
+    facture = get_object_or_404(Facturation, id=facture_id)
+    clients = Client.objects.all()
+
+    if request.method == 'POST':
+        client_id = request.POST.get('client')
+        statut_facture = request.POST.get('statut_facture')
+        commentaire_facture = request.POST.get('commentaireFacture', '')
+        total_general = request.POST.get('total_general', 0)
+
+        # --- Mise à jour du client et du statut ---
+        if client_id:
+            facture.clientFacture_id = client_id
+        if statut_facture:
+            facture.statutFacture = int(statut_facture)
+        facture.commentaireFacture = commentaire_facture
+        facture.totalFacture = Decimal(total_general) if total_general else Decimal('O.00')
+        facture.save()
+
+        # --- Mise à jour des produits ---
+        facture.produit_set.all().delete()
+        produits = request.POST.getlist('produits')
+        # Mais pour la structure "produits[0][nom]" etc, on parcourt par index:
+        i = 0
+        while f'produits[{i}][nom]' in request.POST:
+            nom = request.POST.get(f'produits[{i}][nom]')
+            quantity = request.POST.get(f'produits[{i}][quantity]', 1)
+            unit_price = request.POST.get(f'produits[{i}][unit_price]', 0)
+            total_price = request.POST.get(f'produits[{i}][total_price]', 0)
+            if nom and quantity and unit_price:
+                produit= Produit(
+                    factureProduit=facture,
+                    nomProduit=nom,
+                    quantity=int(quantity),
+                    prixUnitaireProduit=Decimal(unit_price),
+                    total = Decimal(total_price) if total_price else Decimal('0.00'),
+                    devisProduit=None
+                )
+                produit.save()
+            i += 1
+
+        # --- Mise à jour des services ---
+        facture.service_set.all().delete()
+        j = 0
+        while f'services[{j}][nom]' in request.POST:
+            nom = request.POST.get(f'services[{j}][nom]')
+            montant = request.POST.get(f'services[{j}][montant]', 0)
+            if nom:
+                service=Service(
+                    factureService=facture,
+                    nomService=nom,
+                    montantDuService=montant
+                )
+                service.save()
+            j += 1
+
+        messages.success(request, "Facture modifiée avec succès.")
+        return redirect('details-facture', facture_id)
+
+    return render(request, 'facture/update_facture.html', {
+        'facture': facture,
+        'clients': clients,
+    })
 
 # deleteClient : inchangé, mais get_object_or_404
 def deleteClient(request, id):
@@ -407,52 +460,48 @@ def valider_devis(request, devis_id):
     
     return render(request, 'valider_devis.html', {'devis': devis})
 
+
 # envoyer_devis_email : ajout vérif email
 @login_required
 def envoyer_devis_email(request, devis_id):
     devis = get_object_or_404(Devis, id=devis_id)
     
+    # Vérification de l'email du client
     if not devis.clientDevis.emailClient:
         messages.error(request, "L'email du client est manquant.")
-        return redirect('devis_detail', devis_id=devis_id)
+        return redirect('devis-detail', id=devis_id)
     
-    if request.method == 'POST':
-        try:
-            pdf_buffer = generer_pdf_devis(devis)
-            
-            subject = f'Devis N°{devis.numeroDevis} - {devis.clientDevis.nomClient}'
-            message = render_to_string('email/devis_email.html', {
-                'devis': devis,
-                'client': devis.clientDevis,
-                'produits': devis.produit_set.all(),
-                'services': devis.service_set.all(),
-            })
-            
-            email = EmailMessage(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [devis.clientDevis.emailClient],
-                reply_to=[request.user.email]
-            )
-            email.attach(f'Devis_{devis.numeroDevis}.pdf', pdf_buffer.getvalue(), 'application/pdf')
-            email.send()
-            
-            messages.success(request, f"Le devis a été envoyé avec succès à {devis.clientDevis.emailClient}")
-            
-            if request.POST.get('transformer_apres_envoi') and devis.statutDevis == Devis.STATUT_ACCEPTE_DEVIS:
-                try:
-                    facture = devis.transformer_en_facture(request.user)
-                    messages.info(request, f"Le devis a été transformé en facture {facture.numeroFacture}")
-                except Exception as e:
-                    messages.warning(request, f"Erreur lors de la transformation : {str(e)}")
-                    
-        except Exception as e:
-            messages.error(request, f"Erreur lors de l'envoi de l'email : {str(e)}")
+    try:
+        # Génération du PDF
+        pdf_buffer = generer_pdf_devis(devis)
         
-        return redirect('devis_detail', devis_id=devis_id)
+        # Préparation du contenu de l'email
+        subject = f'Devis N°{devis.numeroDevis} - {devis.clientDevis.nomClient}'
+        message = f"""Bonjour {devis.clientDevis.nomClient},
+
+Veuillez trouver ci-joint le devis N°{devis.numeroDevis} comme convenu.
+
+Ce devis est valable 30 jours à compter de sa date d'émission.
+
+N'hésitez pas à me contacter pour toute question ou clarification.
+
+Cordialement,
+{request.user.get_full_name() or request.user.username}"""
+
+        # Envoi de l'email
+        email = EmailMessage(
+            subject=subject,
+            body=message,
+            from_email=request.user.email,
+            to=[devis.clientDevis.emailClient],
+        )
+        email.attach(f'Devis_{devis.numeroDevis}.pdf', pdf_buffer.getvalue(), 'application/pdf')
+        email.send()
+        messages.success(request, "Le devis a été envoyé avec succès.")
+    except Exception as e:
+        messages.error(request, f"Une erreur est survenue lors de l'envoi du devis : {e}")
     
-    return render(request, 'envoyer_devis_email.html', {'devis': devis})
+    return redirect('devis-detail', id=devis_id)
 
 # envoyer_facture_email : ajout vérif email
 @login_required
@@ -461,7 +510,7 @@ def envoyer_facture_email(request, facture_id):
     
     if not facture.clientFacture.emailClient:
         messages.error(request, "L'email du client est manquant.")
-        return redirect('facture_detail', facture_id=facture_id)
+        return redirect('details-facture', id=facture_id)
     
     try:
         pdf_buffer = generer_pdf_facture(facture)
@@ -489,7 +538,7 @@ def envoyer_facture_email(request, facture_id):
     except Exception as e:
         messages.error(request, f"Erreur lors de l'envoi de l'email : {str(e)}")
     
-    return redirect('facture_detail', facture_id=facture_id)
+    return redirect('details-facture', id=facture_id)
 
 # generer_pdf_devis : corrigé entièrement
 def generer_pdf_devis(devis):
@@ -530,7 +579,7 @@ def generer_pdf_devis(devis):
                 (produit.descriptionProduit[:30] + '...') if len(produit.descriptionProduit) > 30 else produit.descriptionProduit,
                 f'{produit.prixUnitaireProduit:.2f} CFA',
                 str(produit.quantity),
-                f'{produit.get_total():.2f} CFA'
+                f'{produit.get_total:.2f} CFA'
             ])
         
         table = Table(data, colWidths=[80*mm, 60*mm, 30*mm, 20*mm, 30*mm])
@@ -630,7 +679,7 @@ def generer_pdf_facture(facture):
     <b>Email:</b> {facture.clientFacture.emailClient}<br/>
     <b>Téléphone:</b> {facture.clientFacture.telephoneClient}<br/>
     <b>Adresse:</b> {facture.clientFacture.adresseClient}, {facture.clientFacture.villeClient}<br/>
-    <b>Date:</b> {facture.dateCreationFacture.strftime('%d/%m/%Y')}
+    <b>Date:</b> {facture.dateCreationFacturation.strftime('%d/%m/%Y')}
     """
     elements.append(Paragraph(client_info, styles['Normal']))
     elements.append(Spacer(1, 20))
@@ -644,7 +693,7 @@ def generer_pdf_facture(facture):
                 (produit.descriptionProduit[:30] + '...') if len(produit.descriptionProduit) > 30 else produit.descriptionProduit,
                 f'{produit.prixUnitaireProduit:.2f} CFA',
                 str(produit.quantity),
-                f'{produit.get_total():.2f} CFA'
+                f'{produit.get_total:.2f} CFA'
             ])
         
         table = Table(data, colWidths=[80*mm, 60*mm, 30*mm, 20*mm, 30*mm])
