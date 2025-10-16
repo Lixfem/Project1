@@ -40,48 +40,103 @@
         <form method="post">
             {% csrf_token %}
             <div class="form-group">
-                <label for="{{ form.nomClient.id_for_label }}" class="form-label">Nom et prénom du client :</label>
-                {{ form.nomClient }}
-            </div>
-            <div class="form-group">
-                <label for="{{ form.emailClient.id_for_label }}" class="form-label">Email du client :</label>
-                {{ form.emailClient }}
-                {% if form.emailClient.errors %}
+                <label for="{{ form.client_type.id_for_label }}" class="form-label">Type de client :</label>
+                {{ form.client_type }}
+                {% if form.client_type.errors %}
                     <div class="error-message">
-                        {{ form.emailClient.errors }}
+                        {{ form.client_type.errors }}
                     </div>
                 {% endif %}
             </div>
             <div class="form-group">
-                <label for="{{ form.telephoneClient.id_for_label }}" class="form-label">Numéro de téléphone du client :</label>
-                {{ form.telephoneClient }}
+                <label for="{{ form.nom.id_for_label }}" class="form-label">Nom et prénom du client :</label>
+                {{ form.nom }}
+                {% if form.nom.errors %}
+                    <div class="error-message">
+                        {{ form.nom.errors }}
+                    </div>
+                {% endif %}
             </div>
             <div class="form-group">
-                <label for="{{ form.sexClient.id_for_label }}" class="form-label">Sexe :</label>
-                {{ form.sexClient }}
+                <label for="{{ form.email.id_for_label }}" class="form-label">Email du client :</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <div class="error-message">
+                        {{ form.email.errors }}
+                    </div>
+                {% endif %}
             </div>
             <div class="form-group">
-                <label for="{{ form.ageClient.id_for_label }}" class="form-label">Tranche d'âge :</label>
-                {{ form.ageClient }}
+                <label for="{{ form.telephone.id_for_label }}" class="form-label">Numéro de téléphone du client :</label>
+                {{ form.telephone }}
+                {% if form.telephone.errors %}
+                    <div class="error-message">
+                        {{ form.telephone.errors }}
+                    </div>
+                {% endif %}
             </div>
             <div class="form-group">
-                <label for="{{ form.adresseClient.id_for_label }}" class="form-label">Adresse du client :</label>
-                {{ form.adresseClient }}
+                <label for="{{ form.sexe.id_for_label }}" class="form-label">Sexe :</label>
+                {{ form.sexe }}
+                {% if form.sexe.errors %}
+                    <div class="error-message">
+                        {{ form.sexe.errors }}
+                    </div>
+                {% endif %}
             </div>
             <div class="form-group">
-                <label for="{{ form.villeClient.id_for_label }}" class="form-label">Ville du client :</label>
-                {{ form.villeClient }}
+                <label for="{{ form.adresse.id_for_label }}" class="form-label">Adresse du client :</label>
+                {{ form.adresse }}
+                {% if form.adresse.errors %}
+                    <div class="error-message">
+                        {{ form.adresse.errors }}
+                    </div>
+                {% endif %}
             </div>
-            <div class="d-grid gap-2 d-md-flex justify-content-md-end y-6">
+            <div class="form-group">
+                <label for="{{ form.ville.id_for_label }}" class="form-label">Ville du client :</label>
+                {{ form.ville }}
+                {% if form.ville.errors %}
+                    <div class="error-message">
+                        {{ form.ville.errors }}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.company_id_number.id_for_label }}" class="form-label">Numéro d'identification de l'entreprise :</label>
+                {{ form.company_id_number }}
+                {% if form.company_id_number.errors %}
+                    <div class="error-message">
+                        {{ form.company_id_number.errors }}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.company_iban.id_for_label }}" class="form-label">IBAN de l'entreprise :</label>
+                {{ form.company_iban }}
+                {% if form.company_iban.errors %}
+                    <div class="error-message">
+                        {{ form.company_iban.errors }}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.company_bic.id_for_label }}" class="form-label">BIC de l'entreprise :</label>
+                {{ form.company_bic }}
+                {% if form.company_bic.errors %}
+                    <div class="error-message">
+                        {{ form.company_bic.errors }}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                 <a href="{% url 'liste-clients' %}" class="btn btn-secondary me-md-2">
-                    <i class="fas fa-save"></i>Retour
+                    <i class="fas fa-arrow-left"></i> Retour
                 </a>
                 <button type="submit" class="btn btn-primary btn-lg">
-                    <i class="fas fa-save"></i>Enregistrer le client
+                    <i class="fas fa-save"></i> Enregistrer le client
                 </button>
-
             </div>
-           
         </form>
     </div>
 

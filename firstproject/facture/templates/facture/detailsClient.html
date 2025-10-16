@@ -5,14 +5,13 @@
     <!-- Breadcrumb et navigation -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-
             <li class="breadcrumb-item">
                 <a href="{% url 'liste-clients' %}">
                     <i class="fas fa-users"></i> Clients
                 </a>
             </li>
             <li class="breadcrumb-item active" aria-current="page">
-                {{ client.nomClient|title }}
+                {{ client.nom|title }}
             </li>
         </ol>
     </nav>
@@ -24,32 +23,32 @@
                 <div class="row align-items-center">
                     <div class="col-md-2 text-center">
                         <div class="avatar-xl bg-white text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 mb-md-0" style="width: 80px; height: 80px; font-size: 2rem; font-weight: bold;">
-                            {{ client.nomClient|first|upper }}{{ client.nomClient|slice:"1:2"|upper }}
+                            {{ client.nom|first|upper }}{{ client.nom|slice:"1:2"|upper }}
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <h1 class="h3 mb-1">{{ client.nomClient|title }}</h1>
+                        <h1 class="h3 mb-1">{{ client.nom|title }}</h1>
                         <p class="mb-1">
                             <i class="fas fa-envelope me-2"></i>
-                            <a href="mailto:{{ client.emailClient }}" class="text-white text-decoration-none">
-                                {{ client.emailClient }}
+                            <a href="mailto:{{ client.email }}" class="text-white text-decoration-none">
+                                {{ client.email }}
                             </a>
                         </p>
-                        {% if client.telephoneClient %}
+                        {% if client.telephone %}
                         <p class="mb-0">
                             <i class="fas fa-phone me-2"></i>
-                            <a href="tel:{{ client.telephoneClient }}" class="text-white text-decoration-none">
-                                {{ client.telephoneClient }}
+                            <a href="tel:{{ client.telephone }}" class="text-white text-decoration-none">
+                                {{ client.telephone }}
                             </a>
                         </p>
                         {% endif %}
                     </div>
                     <div class="col-md-4 text-md-end mt-3 mt-md-0">
                         <div class="btn-group" role="group">
-                            <a href="{% url 'update-client' client.id %}" class="btn btn-outline-light">
+                            <a href="{% url 'update-client' client_id=client.id %}" class="btn btn-outline-light">
                                 <i class="fas fa-edit me-2"></i>Modifier
                             </a>
-                            <button type="button" class="btn btn-outline-light" onclick="confirmDelete('{{ client.id }}', '{{ client.nomClient }}')">
+                            <button type="button" class="btn btn-outline-light" onclick="confirmDelete('{{ client.id }}', '{{ client.nom }}', '{% url 'delete-client' client_id=client.id %}')">
                                 <i class="fas fa-trash me-2"></i>Supprimer
                             </button>
                         </div>
@@ -74,22 +73,22 @@
                     <div class="row">
                         <div class="col-sm-6 mb-3">
                             <label class="form-label text-muted fw-bold">Nom complet</label>
-                            <p class="mb-0">{{ client.nomClient|title }}</p>
+                            <p class="mb-0">{{ client.nom|title }}</p>
                         </div>
                         <div class="col-sm-6 mb-3">
                             <label class="form-label text-muted fw-bold">Email</label>
                             <p class="mb-0">
-                                <a href="mailto:{{ client.emailClient }}" class="text-decoration-none">
-                                    {{ client.emailClient }}
+                                <a href="mailto:{{ client.email }}" class="text-decoration-none">
+                                    {{ client.email }}
                                 </a>
                             </p>
                         </div>
                         <div class="col-sm-6 mb-3">
                             <label class="form-label text-muted fw-bold">Téléphone</label>
                             <p class="mb-0">
-                                {% if client.telephoneClient %}
-                                    <a href="tel:{{ client.telephoneClient }}" class="text-decoration-none">
-                                        {{ client.telephoneClient }}
+                                {% if client.telephone %}
+                                    <a href="tel:{{ client.telephone }}" class="text-decoration-none">
+                                        {{ client.telephone }}
                                     </a>
                                 {% else %}
                                     <span class="text-muted">Non renseigné</span>
@@ -99,11 +98,11 @@
                         <div class="col-sm-6 mb-3">
                             <label class="form-label text-muted fw-bold">Sexe</label>
                             <p class="mb-0">
-                                {% if client.sexClient == 'Masculin' %}
+                                {% if client.sexe == 'Masculin' %}
                                     <span class="badge bg-info">
                                         <i class="fas fa-mars me-1"></i>Masculin
                                     </span>
-                                {% elif client.sexClient == 'Féminin' %}
+                                {% elif client.sexe == 'Feminin' %}
                                     <span class="badge bg-warning">
                                         <i class="fas fa-venus me-1"></i>Féminin
                                     </span>
@@ -113,12 +112,18 @@
                             </p>
                         </div>
                         <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted fw-bold">Tranche d'âge</label>
+                            <label class="form-label text-muted fw-bold">Type de client</label>
                             <p class="mb-0">
-                                {% if client.ageClient %}
-                                    <span class="badge bg-light text-dark">{{ client.ageClient }}</span>
+                                {% if client.client_type == 'INDIVIDU' %}
+                                    <span class="badge bg-light text-dark">
+                                        <i class="fas fa-user me-1"></i>Individu
+                                    </span>
+                                {% elif client.client_type == 'ENTREPRISE' %}
+                                    <span class="badge bg-primary">
+                                        <i class="fas fa-building me-1"></i>Entreprise
+                                    </span>
                                 {% else %}
-                                    <span class="text-muted">Non définie</span>
+                                    <span class="text-muted">Non défini</span>
                                 {% endif %}
                             </p>
                         </div>
@@ -139,8 +144,8 @@
                         <div class="col-sm-12 mb-3">
                             <label class="form-label text-muted fw-bold">Adresse complète</label>
                             <p class="mb-0">
-                                {% if client.adresseClient %}
-                                    {{ client.adresseClient|title }}
+                                {% if client.adresse %}
+                                    {{ client.adresse }}
                                 {% else %}
                                     <span class="text-muted">Non renseignée</span>
                                 {% endif %}
@@ -149,8 +154,8 @@
                         <div class="col-sm-6 mb-3">
                             <label class="form-label text-muted fw-bold">Ville</label>
                             <p class="mb-0">
-                                {% if client.villeClient %}
-                                    <i class="fas fa-city text-muted me-2"></i>{{ client.villeClient|title }}
+                                {% if client.ville %}
+                                    <i class="fas fa-city text-muted me-2"></i>{{ client.ville|title }}
                                 {% else %}
                                     <span class="text-muted">Non renseignée</span>
                                 {% endif %}
@@ -159,10 +164,90 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Informations entreprise -->
+            {% if client.client_type == 'ENTREPRISE' %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-building text-primary me-2"></i>
+                        Informations entreprise
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-12 mb-3">
+                            <label class="form-label text-muted fw-bold">Numéro d'identification</label>
+                            <p class="mb-0">
+                                {% if client.company_id_number %}
+                                    <code>{{ client.company_id_number }}</code>
+                                {% else %}
+                                    <span class="text-muted">Non renseigné</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-sm-6 mb-3">
+                            <label class="form-label text-muted fw-bold">IBAN</label>
+                            <p class="mb-0">
+                                {% if client.company_iban %}
+                                    <code>{{ client.company_iban }}</code>
+                                {% else %}
+                                    <span class="text-muted">Non renseigné</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-sm-6 mb-3">
+                            <label class="form-label text-muted fw-bold">BIC</label>
+                            <p class="mb-0">
+                                {% if client.company_bic %}
+                                    <code>{{ client.company_bic }}</code>
+                                {% else %}
+                                    <span class="text-muted">Non renseigné</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
-        <!-- Colonne droite - Informations système et activités -->
+        <!-- Colonne droite - Informations système et actions -->
         <div class="col-md-6">
+            <!-- Statistiques du client -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line text-primary me-2"></i>
+                        Statistiques
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4 border-end">
+                            <div class="p-3">
+                                <h3 class="text-primary mb-1">{{ factures.count }}</h3>
+                                <p class="text-muted mb-0 small">Facture(s)</p>
+                            </div>
+                        </div>
+                        <div class="col-4 border-end">
+                            <div class="p-3">
+                                <h3 class="text-info mb-1">{{ devis_lists.count }}</h3>
+                                <p class="text-muted mb-0 small">Devis</p>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3">
+                                <h3 class="text-success mb-1">
+                                    {% widthratio factures|length|add:devis|length 1 1 %}
+                                </h3>
+                                <p class="text-muted mb-0 small">Total docs</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Informations système -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-light">
@@ -173,34 +258,24 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-sm-6 mb-3">
+                        <div class="col-sm-12 mb-3">
                             <label class="form-label text-muted fw-bold">Date de création</label>
                             <p class="mb-0">
-                                {% if client.dateCreationClient %}
-                                    <i class="fas fa-calendar-alt text-muted me-2"></i>
-                                    {{ client.dateCreationClient|date:"d/m/Y à H:i" }}
-                                {% else %}
-                                    <span class="text-muted">Non définie</span>
-                                {% endif %}
+                                <i class="fas fa-calendar-alt text-muted me-2"></i>
+                                {{ client.date_creation|date:"d/m/Y à H:i" }}
                             </p>
                         </div>
-                        
                         <div class="col-sm-12 mb-3">
-                            <label class="form-label text-muted fw-bold">Ajouté par</label>
+                            <label class="form-label text-muted fw-bold">Créé par</label>
                             <p class="mb-0">
-                                {% if client.clientSaveBy %}
-                                    <i class="fas fa-user-shield text-muted me-2"></i>
-                                    {{ client.clientSaveBy.get_full_name|default:client.clientSaveBy.username }}
-                                {% else %}
-                                    <span class="text-muted">Utilisateur inconnu</span>
-                                {% endif %}
+                                <i class="fas fa-user text-muted me-2"></i>
+                                {{ client.save_by.get_full_name|default:client.save_by.username }}
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            
             <!-- Actions rapides -->
             <div class="card shadow-sm">
                 <div class="card-header bg-light">
@@ -211,52 +286,162 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="#" class="btn btn-primary">
+                        <a href="{% url 'create-facture' %}" class="btn btn-primary">
                             <i class="fas fa-file-invoice me-2"></i>
-                            Nouvelle facture
+                            Nouvelle facture pour ce client
                         </a>
-                        <a href="#" class="btn btn-info">
+                        <a href="{% url 'create-devis' %}" class="btn btn-info">
                             <i class="fas fa-file-alt me-2"></i>
-                            Nouveau devis
+                            Nouveau devis pour ce client
                         </a>
-                        <a href="mailto:{{ client.emailClient }}" class="btn btn-success">
+                        <a href="mailto:{{ client.email }}" class="btn btn-success">
                             <i class="fas fa-envelope me-2"></i>
                             Envoyer un email
                         </a>
-        
                     </div>
                 </div>
-            </div> 
+            </div>
         </div>
     </div>
 
-<!-- Modal de confirmation de suppression -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    Confirmer la suppression
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Êtes-vous sûr de vouloir supprimer le client <strong id="clientName"></strong> ?</p>
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Attention :</strong> Cette action supprimera également toutes les factures et devis associés à ce client.
+    <!-- Historique des factures -->
+    {% if factures %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-file-invoice text-primary me-2"></i>
+                        Factures ({{ factures.count }})
+                    </h5>
                 </div>
-                <p class="text-danger"><small>Cette action est irréversible.</small></p>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Numéro</th>
+                                    <th>Date</th>
+                                    <th>Montant TTC</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for facture in factures %}
+                                <tr>
+                                    <td><strong>{{ facture.numero }}</strong></td>
+                                    <td>{{ facture.date_creation|date:"d/m/Y" }}</td>
+                                    <td>{{ facture.total_ttc|floatformat:2 }} FCFA</td>
+                                    <td>
+                                        {% if facture.statut == 1 %}
+                                            <span class="badge bg-success">Payée</span>
+                                        {% elif facture.statut == 2 %}
+                                            <span class="badge bg-warning">En attente</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Annulée</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'details-facture' facture_id=facture.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <form method="post" id="deleteForm" style="display: inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash me-2"></i>Supprimer définitivement
-                    </button>
-                </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Historique des devis -->
+    {% if devis_lists %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-file-alt text-primary me-2"></i>
+                        Devis ({{ devis_lists.count }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Numéro</th>
+                                    <th>Date</th>
+                                    <th>Montant TTC</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for devis_list in devis_lists %}
+                                <tr>
+                                    <td><strong>{{ d.numero }}</strong></td>
+                                    <td>{{ d.date_creation|date:"d/m/Y" }}</td>
+                                    <td>{{ d.total_ttc|floatformat:2 }} FCFA</td>
+                                    <td>
+                                        {% if d.statut == 1 %}
+                                            <span class="badge bg-warning">En attente</span>
+                                        {% elif d.statut == 2 %}
+                                            <span class="badge bg-success">Accepté</span>
+                                        {% elif d.statut == 3 %}
+                                            <span class="badge bg-danger">Refusé</span>
+                                        {% else %}
+                                            <span class="badge bg-info">Transformé</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'devis-detail' devis_id=devis_list.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Modal de confirmation de suppression -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Confirmer la suppression
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Êtes-vous sûr de vouloir supprimer le client <strong id="clientName"></strong> ?</p>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Attention :</strong> Cette action supprimera également toutes les factures et devis associés à ce client.
+                    </div>
+                    <p class="text-danger"><small>Cette action est irréversible.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <form method="post" id="deleteForm" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>Supprimer définitivement
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -264,9 +449,9 @@
 
 <script>
 // Fonction de confirmation de suppression
-function confirmDelete(clientId, clientName) {
+function confirmDelete(clientId, clientName, deleteUrl) {
     document.getElementById('clientName').textContent = clientName;
-    document.getElementById('deleteForm').action = `/clients/<int:id>/delete/${clientId}/`;
+    document.getElementById('deleteForm').action = deleteUrl;
     
     const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
     modal.show();

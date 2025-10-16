@@ -1,0 +1,400 @@
+{% extends 'facture/base.html' %}
+
+{% block content %}
+<style>
+    .container {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 800px;
+        width: 100%;
+        margin: 20px auto;
+        overflow: hidden;
+    }
+
+    .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+    }
+
+    .header h1 {
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
+
+    .tabs {
+        display: flex;
+        background: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .tab {
+        flex: 1;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        font-weight: 600;
+        color: #6c757d;
+        transition: all 0.3s ease;
+        border-bottom: 3px solid transparent;
+    }
+
+    .tab:hover {
+        background: #e9ecef;
+    }
+
+    .tab.active {
+        color: #667eea;
+        background: white;
+        border-bottom-color: #667eea;
+    }
+
+    .form-container {
+        padding: 40px;
+    }
+
+    .form-section {
+        display: none;
+    }
+
+    .form-section.active {
+        display: block;
+        animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    label .required {
+        color: #dc3545;
+        margin-left: 3px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    textarea,
+    select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .calculation-display {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 10px;
+        border-left: 4px solid #667eea;
+    }
+
+    .calculation-display strong {
+        color: #667eea;
+        font-size: 18px;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+
+    .btn {
+        flex: 1;
+        padding: 14px 30px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+    }
+
+    .info-text {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+
+    @media (max-width: 768px) {
+        .row {
+            grid-template-columns: 1fr;
+        }
+
+        .form-container {
+            padding: 25px;
+        }
+
+        .btn-group {
+            flex-direction: column;
+        }
+
+        .container {
+            margin: 10px;
+        }
+    }
+
+    @media (min-width: 992px) {
+        .container {
+            margin-left: 270px;
+            margin-right: 20px;
+        }
+    }
+</style>
+
+<div class="container">
+    <div class="header">
+        <h1>📦 Ajouter un Article</h1>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('produit', this)">
+            📦 Produit
+        </div>
+        <div class="tab" onclick="switchTab('service', this)">
+            🛠️ Service
+        </div>
+        <div class="tab" onclick="switchTab('category', this)">
+            🗂️ Catégorie
+        </div>
+    </div>
+
+    <div class="form-container">
+        <!-- Affichage des messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Formulaire Produit -->
+        <form class="form-section active" id="produit-form" method="POST" action="{% url 'ajouter_element' %}">
+            {% csrf_token %}
+            <input type="hidden" name="type_element" value="produit">
+            
+            <div class="form-group">
+                <label for="{{ produit_form.nom_produit.id_for_label }}">Nom du produit <span class="required">*</span></label>
+                {{ produit_form.nom_produit }}
+                {% if produit_form.nom_produit.errors %}
+                    <div class="text-danger">{{ produit_form.nom_produit.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ produit_form.description_produit.id_for_label }}">Description</label>
+                {{ produit_form.description_produit }}
+                {% if produit_form.description_produit.errors %}
+                    <div class="text-danger">{{ produit_form.description_produit.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ produit_form.category.id_for_label }}">Catégorie</label>
+                {{ produit_form.category }}
+                {% if produit_form.category.errors %}
+                    <div class="text-danger">{{ produit_form.category.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label for="{{ produit_form.prix_unitaire_produit.id_for_label }}">Prix unitaire (FCFA) <span class="required">*</span></label>
+                    {{ produit_form.prix_unitaire_produit }}
+                    {% if produit_form.prix_unitaire_produit.errors %}
+                        <div class="text-danger">{{ produit_form.prix_unitaire_produit.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ produit_form.quantity.id_for_label }}">Quantité <span class="required">*</span></label>
+                    {{ produit_form.quantity }}
+                    {% if produit_form.quantity.errors %}
+                        <div class="text-danger">{{ produit_form.quantity.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="calculation-display">
+                <strong>Total: <span id="totalProduit">0.00</span> FCFA</strong>
+            </div>
+
+            <div class="btn-group">
+                <button type="submit" class="btn btn-primary">✓ Ajouter le produit</button>
+                <button type="reset" class="btn btn-secondary">↺ Réinitialiser</button>
+            </div>
+        </form>
+
+        <!-- Formulaire Service -->
+        <form class="form-section" id="service-form" method="POST" action="{% url 'ajouter_element' %}">
+            {% csrf_token %}
+            <input type="hidden" name="type_element" value="service">
+            
+            <div class="form-group">
+                <label for="{{ service_form.nom_service.id_for_label }}">Nom du service <span class="required">*</span></label>
+                {{ service_form.nom_service }}
+                {% if service_form.nom_service.errors %}
+                    <div class="text-danger">{{ service_form.nom_service.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ service_form.description_service.id_for_label }}">Description</label>
+                {{ service_form.description_service }}
+                {% if service_form.description_service.errors %}
+                    <div class="text-danger">{{ service_form.description_service.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label for="{{ service_form.montant_du_service.id_for_label }}">Montant (FCFA) <span class="required">*</span></label>
+                    {{ service_form.montant_du_service }}
+                    {% if service_form.montant_du_service.errors %}
+                        <div class="text-danger">{{ service_form.montant_du_service.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ service_form.date_prestation_service.id_for_label }}">Date de prestation</label>
+                    {{ service_form.date_prestation_service }}
+                    <p class="info-text">Laissez vide pour la date du jour</p>
+                    {% if service_form.date_prestation_service.errors %}
+                        <div class="text-danger">{{ service_form.date_prestation_service.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button type="submit" class="btn btn-primary">✓ Ajouter le service</button>
+                <button type="reset" class="btn btn-secondary">↺ Réinitialiser</button>
+            </div>
+        </form>
+
+        <!-- Formulaire Catégorie -->
+        <form class="form-section" id="category-form" method="POST" action="{% url 'ajouter_element' %}">
+            {% csrf_token %}
+            <input type="hidden" name="type_element" value="category">
+            
+            <div class="form-group">
+                <label for="{{ category_form.nom.id_for_label }}">Nom de la catégorie <span class="required">*</span></label>
+                {{ category_form.nom }}
+                {% if category_form.nom.errors %}
+                    <div class="text-danger">{{ category_form.nom.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ category_form.description.id_for_label }}">Description</label>
+                {{ category_form.description }}
+                {% if category_form.description.errors %}
+                    <div class="text-danger">{{ category_form.description.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="btn-group">
+                <button type="submit" class="btn btn-primary">✓ Ajouter la catégorie</button>
+                <button type="reset" class="btn btn-secondary">↺ Réinitialiser</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function switchTab(type, element) {
+        const tabs = document.querySelectorAll('.tab');
+        const forms = document.querySelectorAll('.form-section');
+        
+        tabs.forEach(tab => tab.classList.remove('active'));
+        forms.forEach(form => form.classList.remove('active'));
+        
+        element.classList.add('active');
+        document.getElementById(type + '-form').classList.add('active');
+        
+        if (type === 'produit') {
+            calculerTotal();
+        }
+    }
+
+    function calculerTotal() {
+        const prix = parseFloat(document.getElementById('id_prix_unitaire_produit').value) || 0;
+        const qty = parseInt(document.getElementById('id_quantity').value) || 0;
+        const total = (prix * qty).toFixed(2);
+        document.getElementById('totalProduit').textContent = total;
+    }
+
+    // Attach event listeners for real-time calculation
+    document.getElementById('id_prix_unitaire_produit').addEventListener('input', calculerTotal);
+    document.getElementById('id_quantity').addEventListener('input', calculerTotal);
+
+    // Initial calculation
+    calculerTotal();
+</script>
+
+{% endblock %}

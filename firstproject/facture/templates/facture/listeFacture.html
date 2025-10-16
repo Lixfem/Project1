@@ -33,7 +33,7 @@
                 {% for facture in factures %}
                     <tr>
                         <td scope="row">{{ facture.numeroFacture }}</td>
-                        <td>{{ facture.dateCreationFacture|date:"d/m/Y" }}</td>
+                        <td>{{ facture.dateCreationFacturation|date:"d/m/Y" }}</td>
                         <td>{{ facture.lastUpdateFacture|date:"d/m/Y H:i" }}</td>
                         <td>{{ facture.clientFacture.nomClient }}</td>
                         <td>{{ facture.totalFacture }}</td>
@@ -52,16 +52,16 @@
                                 <a href="{% url 'details-facture' facture.id %}" class="btn btn-primary btn-sm">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <a href="{% url 'modifier-facture' facture.id %}" class="btn btn-sm btn-outline-warning" title="Modofier">
+                                <a href="{% url 'modifier-facture' facture.id %}" class="btn btn-sm btn-outline-warning" title="Modifier">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <button type="button" class="btn btn-warning btn-sm btn-facture-mod" 
+                                <!-- <button type="button" class="btn btn-warning btn-sm btn-facture-mod" 
                                     data-bs-toggle="modal" data-bs-target="#modifier"
                                     data-id="{{ facture.id }}" 
                                     data-client="{{ facture.clientFacture.nomClient }}"
                                     data-status="{{ facture.statutFacture }}" title="Changer Statut">
                                 <i class="fas fa-user-check"></i>                  
-                            </button>
+                            </button> -->
 
                              <button type="button" class="btn btn-danger btn-sm btn-facture-sup" 
                                     data-bs-toggle="modal" data-bs-target="#supprimer"

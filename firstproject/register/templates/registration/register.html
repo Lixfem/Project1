@@ -1,0 +1,211 @@
+{% block content %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column; /* Ensure content stacks vertically */
+        justify-content: flex-start; /* Align content at the top */
+        padding-top: 1rem; /* Add padding to prevent content from touching the top */
+        color: #333;
+    }
+
+    .register-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 10px;
+        padding: 1.5rem; /* Reduced padding */
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        position: relative;
+        max-height: 80vh; /* Limit container height to 80% of viewport */
+        overflow-y: auto; /* Enable vertical scrolling */
+        margin: 1rem auto; /* Center with margin */
+    }
+
+    .register-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+
+    .register-container h1 {
+        text-align: center;
+        color: #2c3e50;
+        font-size: 1.8rem; /* Slightly smaller heading */
+        font-weight: 300;
+        margin-bottom: 1rem; /* Reduced margin */
+    }
+
+    .form-group {
+        margin-bottom: 1rem; /* Reduced margin between form groups */
+    }
+
+    .form-group label {
+        display: block;
+        color: #7f8c8d;
+        font-size: 0.9rem; /* Smaller label font size */
+        margin-bottom: 0.3rem; /* Reduced margin */
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.5rem; /* Reduced padding */
+        border: 2px solid #e0e0e0;
+        border-radius: 6px; /* Slightly smaller border radius */
+        font-size: 0.9rem; /* Smaller font size */
+        transition: border-color 0.3s ease;
+    }
+
+    .form-group textarea {
+        resize: vertical; /* Allows vertical resizing only */
+        min-height: 60px; /* Smaller textarea height */
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .register-button {
+        width: 100%;
+        padding: 0.6rem; /* Reduced padding */
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.9rem; /* Smaller font size */
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .register-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .error-message {
+        color: #e74c3c;
+        text-align: center;
+        margin-top: 0.5rem; /* Reduced margin */
+        font-size: 0.8rem; /* Smaller error message font */
+    }
+
+    @media (max-width: 480px) {
+        .register-container {
+            padding: 1rem; /* Further reduced padding */
+            margin: 0.5rem; /* Reduced margin */
+            max-height: 90vh; /* Allow more height on small screens */
+        }
+
+        .register-container h1 {
+            font-size: 1.3rem; /* Smaller heading on mobile */
+        }
+
+        .form-group label {
+            font-size: 0.8rem; /* Smaller labels on mobile */
+        }
+
+        .form-group input,
+        .form-group textarea {
+            font-size: 0.8rem; /* Smaller inputs on mobile */
+            padding: 0.4rem; /* Further reduced padding */
+        }
+
+        .register-button {
+            font-size: 0.8rem; /* Smaller button text */
+            padding: 0.5rem; /* Further reduced padding */
+        }
+    }
+</style>
+
+<div class="register-container">
+    <h1>Créer un Compte</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="{{ form.username.id_for_label }}">Nom d'utilisateur</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+                <div class="error-message">
+                    {{ form.username.errors.as_text }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.email.id_for_label }}">Adresse e-mail</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+                <div class="error-message">
+                    {{ form.email.errors.as_text }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.first_name.id_for_label }}">Nom</label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+                <div class="error-message">
+                    {{ form.first_name.errors.as_text }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.last_name.id_for_label }}">Prénom</label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+                <div class="error-message">
+                    {{ form.last_name.errors.as_text }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.password1.id_for_label }}">Mot de passe</label>
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+                <div class="error-message">
+                    {{ form.password1.errors.as_text }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.password2.id_for_label }}">Confirmer le mot de passe</label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+                <div class="error-message">
+                    {{ form.password2.errors.as_text }}
+                </div>
+            {% endif %}
+            {% if form.non_field_errors %}
+                <div class="error-message">
+                    {{ form.non_field_errors.as_text }}
+                </div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="register-button">S'inscrire</button>
+    </form>
+</div>
+{% endblock %}

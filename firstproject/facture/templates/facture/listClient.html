@@ -36,16 +36,6 @@
                         <option value="">Tous les sexes</option>
                         <option value="M">Masculin</option>
                         <option value="F">Féminin</option>
-                        <option value="A">Autre</option>
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <select class="form-select" id="filterAge">
-                        <option value="">Toutes les tranches d'âge</option>
-                        <option value="0-15">0-15 ans</option>
-                        <option value="15-25">15-25 ans</option>
-                        <option value="25-45">25-45 ans</option>
-                        <option value="45+">45 ans et plus</option>
                     </select>
                 </div>
             </div>
@@ -100,10 +90,13 @@
                                     <i class="fas fa-venus-mars me-1"></i>Sexe
                                 </th>
                                 <th scope="col">
-                                    <i class="fas fa-birthday-cake me-1"></i>Âge
+                                    <i class="fas fa-building me-1"></i>Type
                                 </th>
                                 <th scope="col">
                                     <i class="fas fa-map-marker-alt me-1"></i>Ville
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-id-card me-1"></i>ID Entreprise
                                 </th>
                                 <th scope="col">
                                     <i class="fas fa-calendar-alt me-1"></i>Ajouté le
@@ -113,81 +106,87 @@
                         </thead>
                         <tbody>
                             {% for client in clients %}
-                            <tr data-sex="{{ client.sexClient }}" data-age="{{ client.ageClient }}">
+                            <tr data-sex="{{ client.sexe }}">
                                 <td class="fw-bold">{{ forloop.counter }}</td>
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="avatar bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
-                                            {{ client.nomClient|first|upper }}
+                                            {{ client.nom|first|upper }}
                                         </div>
-                                        <strong>{{ client.nomClient|title }}</strong>
+                                        <strong>{{ client.nom|title }}</strong>
                                     </div>
                                 </td>
                                 <td>
-                                    <a href="mailto:{{ client.emailClient }}" class="text-decoration-none">
-                                        {{ client.emailClient }}
+                                    <a href="mailto:{{ client.email }}" class="text-decoration-none">
+                                        {{ client.email }}
                                     </a>
                                 </td>
                                 <td>
-                                    {% if client.telephoneClient %}
-                                        <a href="tel:{{ client.telephoneClient }}" class="text-decoration-none">
-                                            {{ client.telephoneClient }}
+                                    {% if client.telephone %}
+                                        <a href="tel:{{ client.telephone }}" class="text-decoration-none">
+                                            {{ client.telephone }}
                                         </a>
                                     {% else %}
                                         <span class="text-muted">Non renseigné</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if client.sexClient == 'Masculin' %}
+                                    {% if client.sexe == 'M' %}
                                         <span class="badge bg-info">
                                             <i class="fas fa-mars me-1"></i>Masculin
                                         </span>
-                                    {% elif client.sexClient == 'Feminin' %}
+                                    {% elif client.sexe == 'F' %}
                                         <span class="badge bg-warning">
                                             <i class="fas fa-venus me-1"></i>Féminin
                                         </span>
-                                
                                     {% else %}
                                         <span class="text-muted">Non défini</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if client.ageClient %}
-                                        <span class="badge bg-light text-dark">{{ client.ageClient }}</span>
+                                    {% if client.client_type %}
+                                        <span class="badge bg-light text-dark">{{ client.client_type|title }}</span>
                                     {% else %}
                                         <span class="text-muted">Non défini</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if client.villeClient %}
-                                        <i class="fas fa-map-marker-alt text-muted me-1"></i>{{ client.villeClient|title }}
+                                    {% if client.ville %}
+                                        <i class="fas fa-map-marker-alt text-muted me-1"></i>{{ client.ville|title }}
                                     {% else %}
                                         <span class="text-muted">Non renseignée</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if client.dateCreationClient %}
-                                        {{ client.dateCreationClient|date:"d/m/Y" }}
+                                    {% if client.company_id_number %}
+                                        {{ client.company_id_number }}
+                                    {% else %}
+                                        <span class="text-muted">Non renseigné</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if client.date_creation %}
+                                        {{ client.date_creation|date:"d/m/Y" }}
                                     {% else %}
                                         <span class="text-muted">Non définie</span>
                                     {% endif %}
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group" role="group">
-                                        <a href="{% url 'details-clients' client.id %}" class="btn btn-sm btn-outline-info" title="Voir détails">
+                                        <a href="{% url 'details-clients' client_id=client.id %}" class="btn btn-sm btn-outline-info" title="Voir détails">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{% url 'update-client' client.id %}" class="btn btn-sm btn-outline-warning" title="Modifier">
+                                        <a href="{% url 'update-client' client_id=client.id %}" class="btn btn-sm btn-outline-warning" title="Modifier">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Supprimer" onclick="confirmDelete('{{ client.id }}', '{{ client.nomClient }}', '{% url 'delete-client' client.id %}')">
+                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Supprimer" onclick="confirmDelete('{{ client.id }}', '{{ client.nom }}', '{% url 'delete-client' client.id %}')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
                                 </td>
                             </tr>
                             {% endfor %}
-                        <!-- </tbody> -->
+                        </tbody>
                     </table>
                 </div>
 
@@ -263,7 +262,7 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                 <form method="post" id="deleteForm" style="display: inline;">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-danger"  >
+                    <button type="submit" class="btn btn-danger">
                         <i class="fas fa-trash me-2"></i>Supprimer
                     </button>
                 </form>
@@ -277,13 +276,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Recherche en temps réel
     const searchInput = document.getElementById('searchInput');
     const filterSex = document.getElementById('filterSex');
-    const filterAge = document.getElementById('filterAge');
     const table = document.getElementById('clientsTable');
     
     function filterTable() {
         const searchTerm = searchInput.value.toLowerCase();
         const sexFilter = filterSex.value;
-        const ageFilter = filterAge.value;
         const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
         
         for (let row of rows) {
@@ -292,15 +289,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const email = cells[2].textContent.toLowerCase();
             const phone = cells[3].textContent.toLowerCase();
             const sex = row.getAttribute('data-sex');
-            const age = row.getAttribute('data-age');
             
             const matchesSearch = name.includes(searchTerm) || 
                                 email.includes(searchTerm) || 
                                 phone.includes(searchTerm);
             const matchesSex = !sexFilter || sex === sexFilter;
-            const matchesAge = !ageFilter || age === ageFilter;
             
-            if (matchesSearch && matchesSex && matchesAge) {
+            if (matchesSearch && matchesSex) {
                 row.style.display = '';
             } else {
                 row.style.display = 'none';
@@ -310,11 +305,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     searchInput.addEventListener('keyup', filterTable);
     filterSex.addEventListener('change', filterTable);
-    filterAge.addEventListener('change', filterTable);
 });
 
 // Fonction de confirmation de suppression
-function confirmDelete(clientId, clientName,deleteUrl) {
+function confirmDelete(clientId, clientName, deleteUrl) {
     document.getElementById('clientName').textContent = clientName;
     document.getElementById('deleteForm').action = deleteUrl;
     

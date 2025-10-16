@@ -1,77 +1,85 @@
 <!DOCTYPE html>
 <html lang="fr">
-{% load static %}
+<!-- {% load static %} -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Système de Facturation{% endblock %}</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>  -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.min.js"></script> -->
+    <!-- <canvas id="chart" width="500" height="500"></canvas> -->
     {% block extra_css %}{% endblock %}
     <style>
-        /* Sidebar styling */
-        .sidebar {
-            background-color: #343a40;
-            color: white;
-            height: calc(100vh - 56px);
-            position: fixed;
-            top: 56px;
-            left: 0;
-            width: 250px;
-            transform: translateX(-100%);
-            transition: transform 0.3s ease;
-            z-index: 1000;
-        }
+    /* Sidebar styling */
+    .sidebar {
+        background-color: #343a40;
+        color: white;
+        height: calc(100vh - 56px);
+        position: fixed;
+        top: 56px;
+        left: 0;
+        width: 250px;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+    }
 
-        .sidebar.show {
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    .nav-link {
+        color: #adb5bd;
+    }
+
+    .nav-link:hover {
+        color: white;
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-link.active {
+        color: #adb5bd !important;
+        background-color: transparent !important;
+    }
+
+    /* Overlay styling */
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        display: none;
+    }
+
+    .overlay.show {
+        display: block;
+    }
+
+    /* Main content padding */
+    .main-content {
+        margin-left: 0;
+        transition: margin-left 0.3s ease;
+    }
+
+    @media (min-width: 992px) {
+        .sidebar {
             transform: translateX(0);
         }
 
-        .nav-link {
-            color: #adb5bd;
+        .main-content {
+            margin-left: 250px;
         }
 
-        .nav-link:hover {
-            color: white;
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Overlay styling */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
+        #sidebarToggle, .overlay {
             display: none;
         }
-
-        .overlay.show {
-            display: block;
-        }
-
-        /* Main content padding */
-        .main-content {
-            margin-left: 0;
-            transition: margin-left 0.3s ease;
-        }
-
-        @media (min-width: 992px) {
-            .sidebar {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                margin-left: 250px;
-            }
-
-            #sidebarToggle, .overlay {
-                display: none;
-            }
-        }
-    </style>
+    }
+</style>
 </head>
 <body>
     <!-- Fixed-top navbar -->
@@ -93,7 +101,12 @@
                         <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Mon profil</a></li>
                         <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Paramètres</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href=#><i class="fas fa-sign-out-alt me-2"></i>Déconnexion</a></li>
+                        <li>
+                            <form action="{% url 'logout' %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt me-2"></i>Déconnexion</button>
+                            </form>
+                        </li>                    
                     </ul>
                 </div>
             </div>
@@ -118,21 +131,21 @@
             <!-- Sidebar -->
             <nav class="col-lg-2 sidebar p-3" id="sidebar">
                 <div class="nav flex-column">
-                    <hr class="my-3" style="border-color: rgba(255,255,255,0.2);">
+                    <!-- <hr class="my-3" style="border-color: rgba(255,255,255,0.2);"> -->
                     <h6 class="text-uppercase text-white-50 fw-bold px-3 mt-3 mb-2">Devis</h6>
                     <a class="nav-link" href="{% url 'liste-devis' %}"><i class="fas fa-file-invoice"></i> Tous les devis</a>
                     <a class="nav-link" href="{% url 'create-devis' %}"><i class="fas fa-plus-circle"></i> Nouveau devis</a>
-                    <a class="nav-link" href="#"><i class="fas fa-clock"></i> Devis en attente</a>
+                    <a class="nav-link" href="{% url 'liste-attente' %}"><i class="fas fa-clock"></i> Devis en attente</a>
                     <h6 class="text-uppercase text-white-50 fw-bold px-3 mt-4 mb-2">Factures</h6>
                     <a class="nav-link" href="{% url 'liste-facture' %}"><i class="fas fa-receipt"></i> Toutes les factures</a>
                     <a class="nav-link" href="{% url 'create-facture' %}"><i class="fas fa-plus-circle"></i> Nouvelle facture</a>
-                    <a class="nav-link" href="#"><i class="fas fa-exclamation-triangle"></i> Factures impayées</a>
-                    <a class="nav-link" href="#"><i class="fas fa-check-circle"></i> Factures payées</a>
+                    <a class="nav-link" href="{% url 'liste-impaye' %}"><i class="fas fa-exclamation-triangle"></i> Factures impayées</a>
+                    <a class="nav-link" href="{% url 'liste-paye' %}"><i class="fas fa-check-circle"></i> Factures payées</a>
                     <h6 class="text-uppercase text-white-50 fw-bold px-3 mt-4 mb-2">Clients</h6>
                     <a class="nav-link" href="{% url 'liste-clients' %}"><i class="fas fa-users"></i> Tous les clients</a>
                     <a class="nav-link" href="{% url 'create-client' %}"><i class="fas fa-user-plus"></i> Nouveau client</a>
                     <h6 class="text-uppercase text-white-50 fw-bold px-3 mt-4 mb-2">Reporting</h6>
-                    <a class="nav-link" href="#"><i class="fas fa-chart-bar"></i> Statistiques</a>
+                    <a class="nav-link" href="{% url 'stat' %}"><i class="fas fa-chart-bar"></i> Statistiques</a>
                     <a class="nav-link" href="#"><i class="fas fa-download"></i> Exports</a>
                     <hr class="my-3" style="border-color: rgba(255,255,255,0.2);">
                     <a class="nav-link" href="#"><i class="fas fa-cog"></i> Configuration</a>
@@ -142,7 +155,11 @@
             <!-- Main content -->
             <main class="col-lg-10 main-content p-0">
                 <div class="p-4">
+                    {% if user.is_authenticated %}
                     {% block content %}{% endblock %}
+                    {% else %}
+                        <p>Login <a href="{% url 'login' %}"></a></p>
+                    {% endif %}
                 </div>
                 <footer class="footer mt-auto py-3 px-4">
                     <div class="container-fluid">

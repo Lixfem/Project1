@@ -1,0 +1,213 @@
+{% extends 'facture/base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h1>Devis en Attente</h1>
+
+    {% if messages %}
+        <div class="alert alert-dismissible fade show" role="alert">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+
+    <div class="form-group mb-3">
+        <input id="search" class="form-control" type="text" placeholder="Rechercher...">
+    </div>
+    <div class="table-responsive">
+        <table class="table table-striped" id="devisTable">
+            <thead>
+                <tr>
+                    <th scope="col">N° Devis</th>
+                    <th scope="col">Date de Création</th>
+                    <th scope="col">Dernière Mise à Jour</th>
+                    <th scope="col">Nom du client</th>
+                    <th scope="col">Total</th>
+                    <th scope="col">Enregistré par</th>
+                    <th scope="col">Statut</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for devis in devis_lists %}
+                    {% if devis.statutDevis == 2 %}
+
+                    <tr>
+                        <td scope="row">{{ devis.numeroDevis }}</td>
+                        <td>{{ devis.dateCreationDevis|date:"d/m/Y" }}</td>
+                        <td>{{ devis.lastUpdateDevis|date:"d/m/Y H:i" }}</td>
+                        <td>{{ devis.clientDevis.nomClient }}</td>
+                        <td>{{ devis.totalDevis }}</td>
+                        <td>{{ devis.devisSaveBy.username }}</td>
+                        <td>
+                                <span class="badge bg-warning">{{ devis.get_statutDevis_display }}</span>
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'devis-detail' devis.id %}" class="btn btn-sm btn-outline-info" title="Voir détails">                                            
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'modifier-devis' devis_id=devis.id %}" class="btn btn-sm btn-outline-warning" title="Modofier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+
+                                 <!-- <button type="button" class="btn btn-warning btn-sm btn-facture-mod" 
+                                    data-bs-toggle="modal" data-bs-target="#modifier"
+                                    data-id="{{ devis.id }}" 
+                                    data-client="{{ devis.clientDevis.nomClient }}"
+                                    data-status="{{ devis.statutDevis }}" title="changer status">
+                                <i class="fas fa-sync-alt"></i>                  
+                                </button> -->
+
+                                 <button type="button" class="btn btn-danger btn-sm btn-devis-sup"
+                                    data-bs-toggle="modal" data-bs-target="#supprimer" 
+                                    data-id="{{ devis.id }}"
+                                    data-client="{{ devis.clientDevis.nomClient }}" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+
+                                </button>
+                            </div>
+                           
+                           
+                        </td>
+                    </tr>
+                {% endif %}
+                {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center">
+                            <em>Aucun devis disponible.</em>
+                            <br><small class="text-muted">Total devis: {{ devis_lists|length }}</small>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal Modifier -->
+    <div class="modal fade" id="modifier" tabindex="-1" aria-labelledby="modifierModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modifierModalLabel">Modifier le devis</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" action="{% url 'liste-devis' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <input type="hidden" name="id_modified" id="id_modified">
+                        <p><strong>Client:</strong> <span id="client_name"></span></p>
+                        <label class="text-dark"><strong>Statut du devis :</strong></label>
+                        <div>
+                            <input type="radio" id="paye" name="modified" value="1">
+                            <label for="paye" class="me-2">Accepté</label>
+                            <input type="radio" id="en_attente" name="modified" value="2">
+                            <label for="en_attente" class="me-2">En Attente</label>
+                            <input type="radio" id="annule" name="modified" value="3">
+                            <label for="annule">Refusé</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Supprimer -->
+    <div class="modal fade" id="supprimer" tabindex="-1" aria-labelledby="supprimerModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="supprimerModalLabel">Supprimer le devis</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" action="{% url 'liste-devis' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <input type="hidden" name="id_supprimer" id="id_supprimer">
+                        <p>Êtes-vous sûr de vouloir supprimer ce devis ?</p>
+                        <p><strong>Client:</strong> <span id="client_supprimer"></span></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                        <button type="submit" class="btn btn-danger">Supprimer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <a href="{% url 'home' %}" class="btn btn-secondary">Retour à l'accueil</a>
+
+    <!-- Pagination -->
+    {% if devis_lists.has_other_pages %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                {% if devis_lists.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ devis_lists.previous_page_number }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link" aria-hidden="true">&laquo;</span>
+                    </li>
+                {% endif %}
+
+                {% for num in devis_lists.paginator.page_range %}
+                    {% if devis_lists.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% else %}
+                        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if devis_lists.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ devis_lists.next_page_number }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link" aria-hidden="true">&raquo;</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Search functionality with debounce
+        let searchTimeout;
+        $("#search").on("keyup", function() {
+            clearTimeout(searchTimeout);
+            let value = $(this).val().toLowerCase();
+            searchTimeout = setTimeout(function() {
+                $("#devisTable tbody tr").filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                });
+            }, 300);
+        });
+
+        // Modal population for Supprimer
+        $('.btn-devis-sup').on('click', function() {
+            let devis_id = $(this).data('id');
+            let client = $(this).data('client');
+            $('#id_supprimer').val(devis_id);
+            $('#client_supprimer').text(client);
+        });
+
+    });
+</script>
+{% endblock %}

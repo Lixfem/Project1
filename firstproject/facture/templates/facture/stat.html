@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistiques - Système de Facturation</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script> 
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 2rem 0;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 2.5rem;
+            font-weight: 300;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .stats-grid {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 5px;
+            padding: 0.75rem;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            flex: 0 0 auto;
+            min-width: 150px;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 0.02rem;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); /* Reduced from 500px */
+            gap: 1.5rem; /* Reduced from 2rem */
+            margin-bottom: 2rem; /* Reduced from 3rem */
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 10px; /* Reduced from 15px */
+            padding: 1.5rem; /* Reduced from 2rem */
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1); /* Slightly reduced shadow */
+            position: relative;
+        }
+
+        .chart-title {
+            font-size: 1.2rem; /* Reduced from 1.5rem */
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1rem; /* Reduced from 1.5rem */
+            text-align: center;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px; /* Reduced from 400px */
+        }
+
+        .filters {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+        }
+
+        select, input[type="date"] {
+            padding: 0.75rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        select:focus, input[type="date"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-paye { background-color: #27ae60; }
+        .status-attente { background-color: #f39c12; }
+        .status-annule { background-color: #e74c3c; }
+        .status-accepte { background-color: #27ae60; }
+        .status-refuse { background-color: #e74c3c; }
+        .status-transforme { background-color: #3498db; }
+
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stat-card {
+                padding: 1.5rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>📊 Tableau de Bord - Statistiques</h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="filters">
+            <div class="filter-group">
+                <a href="{% url 'home' %}" class="btn btn-secondary" style="padding: 0.75rem 2rem; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Retour à l'accueil</a>
+                <label>Période:</label>
+                <select id="periodeFilter">
+                    <option value="30">30 derniers jours</option>
+                    <option value="90">90 derniers jours</option>
+                    <option value="365" selected>Cette année</option>
+                    <option value="all">Toutes les données</option>
+                </select>
+                
+                <label>Date début:</label>
+                <input type="date" id="dateDebut">
+                
+                <label>Date fin:</label>
+                <input type="date" id="dateFin">
+                
+                <button onclick="updateCharts()" style="padding: 0.75rem 2rem; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Actualiser</button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalClients">0</div>
+                <div class="stat-label">Total Clients</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-number" id="totalFactures">0</div>
+                <div class="stat-label">Factures Créées</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-number" id="totalDevis">0</div>
+                <div class="stat-label">Devis Générés</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-number" id="chiffreAffaires">FCFA 0</div>
+                <div class="stat-label">Chiffre d'Affaires</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-number" id="facturesPayees">0%</div>
+                <div class="stat-label">Taux de Paiement</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-number" id="devisAcceptes">0%</div>
+                <div class="stat-label">Taux Acceptation Devis</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h3 class="chart-title">Évolution du Chiffre d'Affaires</h3>
+                <div class="chart-wrapper">
+                    <canvas id="chiffreAffairesChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3 class="chart-title">Répartition des Statuts de Factures</h3>
+                <div class="chart-wrapper">
+                    <canvas id="statutsFacturesChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3 class="chart-title">Statuts des Devis</h3>
+                <div class="chart-wrapper">
+                    <canvas id="statutsDevisChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3 class="chart-title">Répartition par Sexe des Clients</h3>
+                <div class="chart-wrapper">
+                    <canvas id="repartitionSexeChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3 class="chart-title">Top 10 Produits les Plus Vendus</h3>
+                <div class="chart-wrapper">
+                    <canvas id="topProduitsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3 class="chart-title">Services les Plus Demandés</h3>
+                <div class="chart-wrapper">
+                    <canvas id="topServicesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let statistiques = {};
+        let isLoading = false;
+        let charts = {};
+
+        function initCharts() {
+            try {
+                if (!statistiques || !statistiques.factures || !statistiques.devis || !statistiques.clients || !statistiques.produits || !statistiques.services) {
+                    console.warn('Données statistiques incomplètes ou non chargées.');
+                    return;
+                }
+
+                Object.values(charts).forEach(chart => {
+                    if (chart) chart.destroy();
+                });
+
+                console.log('init', statistiques.factures.evolutionMensuelle);
+                
+                const ctx1 = document.getElementById('chiffreAffairesChart').getContext('2d');
+                charts.chiffreAffaires = new Chart(ctx1, {
+                    type: 'line',
+                    data: {
+                        labels: statistiques.factures.moisLabels || ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
+                        datasets: [{
+                            label: 'Chiffre d\'Affaires (F CFA)',
+                            data: statistiques.factures.evolutionMensuelle || [],
+                            borderColor: 'rgb(102, 126, 234)',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return 'F CFA ' + value.toLocaleString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                const ctx2 = document.getElementById('statutsFacturesChart').getContext('2d');
+                charts.statutsFactures = new Chart(ctx2, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Payées', 'En Attente', 'Annulées'],
+                        datasets: [{
+                            data: [
+                                statistiques.factures.payees || 0,
+                                statistiques.factures.enAttente || 0,
+                                statistiques.factures.annulees || 0
+                            ],
+                            backgroundColor: ['#27ae60', '#f39c12', '#e74c3c']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 20
+                                }
+                            }
+                        }
+                    }
+                });
+
+                const ctx3 = document.getElementById('statutsDevisChart').getContext('2d');
+                charts.statutsDevis = new Chart(ctx3, {
+                    type: 'bar',
+                    data: {
+                        labels: ['En Attente', 'Acceptés', 'Refusés', 'Transformés'],
+                        datasets: [{
+                            label: 'Nombre de devis',
+                            data: [
+                                statistiques.devis.enAttente || 0,
+                                statistiques.devis.acceptes || 0,
+                                statistiques.devis.refuses || 0,
+                                statistiques.devis.transformes || 0
+                            ],
+                            backgroundColor: ['#f39c12', '#27ae60', '#e74c3c', '#3498db']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                const ctx4 = document.getElementById('repartitionSexeChart').getContext('2d');
+                const repartitionSexe = statistiques.clients.repartitionSexe || { Masculin: 0, Féminin: 0 };
+                charts.repartitionSexe = new Chart(ctx4, {
+                    type: 'pie',
+                    data: {
+                        labels: Object.keys(repartitionSexe).length ? Object.keys(repartitionSexe) : ['Masculin', 'Féminin'],
+                        datasets: [{
+                            data: Object.values(repartitionSexe).length ? Object.values(repartitionSexe) : [0, 0],
+                            backgroundColor: ['#3498db', '#e91e63', '#95a5a6']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 20
+                                }
+                            }
+                        }
+                    }
+                });
+console.log('repartitionSexe:', repartitionSexe)
+console.log('keys:', Object.keys(repartitionSexe));
+console.log('Values:', Object.values(repartitionSexe))
+                const ctx5 = document.getElementById('topProduitsChart').getContext('2d');
+                const topProduits = statistiques.produits.topVendus || [];
+                charts.topProduits = new Chart(ctx5, {
+                    type: 'bar',
+                    data: {
+                        labels: topProduits.map(p => p.nom || 'Inconnu'),
+                        datasets: [{
+                            label: 'Quantité vendue',
+                            data: topProduits.map(p => p.quantite || 0),
+                            backgroundColor: 'rgba(102, 126, 234, 0.8)'
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                const ctx6 = document.getElementById('topServicesChart').getContext('2d');
+                const topServices = statistiques.services.topDemandes || [];
+                charts.topServices = new Chart(ctx6, {
+                    type: 'bar',
+                    data: {
+                        labels: topServices.map(s => s.nom || 'Inconnu'),
+                        datasets: [{
+                            label: 'Montant (F CFA)',
+                            data: topServices.map(s => s.montant || 0),
+                            backgroundColor: 'rgba(118, 75, 162, 0.8)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return 'F CFA ' + value.toLocaleString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Erreur lors de l\'initialisation des graphiques:', error);
+            }
+        }
+
+        function updateStats() {
+            try {
+                if (!statistiques || !statistiques.clients || !statistiques.factures || !statistiques.devis) {
+                    console.warn('Données statistiques incomplètes pour la mise à jour des stats.');
+                    return;
+                }
+
+                document.getElementById('totalClients').textContent = statistiques.clients.total || 0;
+                document.getElementById('totalFactures').textContent = statistiques.factures.total || 0;
+                document.getElementById('totalDevis').textContent = statistiques.devis.total || 0;
+                document.getElementById('chiffreAffaires').textContent = (statistiques.factures.chiffreAffaires || 0).toLocaleString() + ' F CFA ';
+                document.getElementById('facturesPayees').textContent = (statistiques.factures.tauxPaiement || 0) + '%';
+                document.getElementById('devisAcceptes').textContent = (statistiques.devis.tauxAcceptation || 0) + '%';
+            } catch (error) {
+                console.error('Erreur lors de la mise à jour des stats:', error);
+            }
+        }
+
+        async function loadData() {
+            if (isLoading) return;
+
+            isLoading = true;
+            try {
+                const dateDebut = document.getElementById('dateDebut').value;
+                const dateFin = document.getElementById('dateFin').value;
+                const periode = document.getElementById('periodeFilter').value;
+
+                const params = new URLSearchParams();
+                if (dateDebut) params.append('date_debut', dateDebut);
+                if (dateFin) params.append('date_fin', dateFin);
+                params.append('periode', periode);
+
+                const response = await fetch(`/statistiques/api/donnees/?${params}`);
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                statistiques = data;
+                updateStats();
+                console.log('Stats', statistiques);
+                
+                initCharts();
+            } catch (error) {
+                console.error('Erreur lors du chargement des données:', error);
+                alert('Erreur lors du chargement des données: ' + error.message);
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        function updateCharts() {
+            loadData();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+
+            document.getElementById('dateFin').valueAsDate = today;
+            document.getElementById('dateDebut').valueAsDate = oneYearAgo;
+
+            loadData();
+        });
+
+        document.getElementById('periodeFilter').addEventListener('change', function() {
+            const periode = this.value;
+            const today = new Date();
+            let dateDebut = new Date();
+
+            switch (periode) {
+                case '30':
+                    dateDebut.setDate(today.getDate() - 30);
+                    break;
+                case '90':
+                    dateDebut.setDate(today.getDate() - 90);
+                    break;
+                case '365':
+                    dateDebut.setFullYear(today.getFullYear() - 1);
+                    break;
+                default:
+                    dateDebut = new Date('2020-01-01');
+            }
+
+            document.getElementById('dateDebut').valueAsDate = dateDebut;
+            document.getElementById('dateFin').valueAsDate = today;
+        });
+    </script>
+</body>
+</html>

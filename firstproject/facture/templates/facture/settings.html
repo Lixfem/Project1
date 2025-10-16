@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <title>Paramétrage des Devis et Factures</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        h2 {
+            color: #555;
+            margin-top: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            resize: vertical;
+        }
+        button {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .add-vat {
+            background-color: #28a745;
+            margin-top: 10px;
+        }
+        .add-vat:hover {
+            background-color: #218838;
+        }
+        .vat-list {
+            margin-top: 10px;
+        }
+        .vat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+        }
+        .remove-vat {
+            background-color: #dc3545;
+            padding: 5px 10px;
+        }
+        .remove-vat:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Paramétrage des Devis et Factures</h1>
+
+        <!-- Informations de l'entreprise -->
+        <div class="section">
+            <h2>Informations de l'Entreprise</h2>
+            <div class="form-group">
+                <label for="companyName">Nom de l'entreprise</label>
+                <input type="text" id="companyName" value="{{ profile.company_name }}" placeholder="Votre Entreprise">
+            </div>
+            <div class="form-group">
+                <label for="companyAddress">Adresse</label>
+                <textarea id="companyAddress" rows="3" placeholder="123 Rue Exemple, 75000 Paris, France">{{ profile.company_address }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="companyPhone">Téléphone</label>
+                <input type="tel" id="companyPhone" value="{{ profile.company_phone }}" placeholder="+33 1 23 45 67 89">
+            </div>
+            <div class="form-group">
+                <label for="companyEmail">Email</label>
+                <input type="email" id="companyEmail" value="{{ profile.company_email }}" placeholder="contact@votreentreprise.com">
+            </div>
+            <div class="form-group">
+                <label for="companySiret">SIRET</label>
+                <input type="text" id="companySiret" value="{{ profile.company_siret }}" placeholder="123 456 789 00012">
+            </div>
+            <div class="form-group">
+                <label for="companyLogo">Logo de l'entreprise (URL)</label>
+                <input type="url" id="companyLogo" value="{{ profile.company_logo }}" placeholder="https://example.com/logo.png">
+            </div>
+        </div>
+
+        <!-- Taux de TVA -->
+        <div class="section">
+            <h2>Taux de TVA</h2>
+            <div class="form-group">
+                <label for="vatRate">Ajouter un taux de TVA (%)</label>
+                <input type="number" id="vatRate" placeholder="20" step="0.1">
+                <button class="add-vat" onclick="addVatRate()">Ajouter</button>
+            </div>
+            <div class="vat-list" id="vatList">
+                <!-- Les taux de TVA seront ajoutés dynamiquement -->
+            </div>
+        </div>
+
+        <!-- Conditions de paiement -->
+        <div class="section">
+            <h2>Conditions de Paiement</h2>
+            <div class="form-group">
+                <label for="paymentTerms">Conditions de paiement</label>
+                <textarea id="paymentTerms" rows="3" placeholder="Paiement sous 30 jours nets">{{ profile.payment_terms }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="companyIban">IBAN</label>
+                <input type="text" id="companyIban" value="{{ profile.company_iban }}" placeholder="FR76XXXXXXXXXXXXXXXXXXXX">
+            </div>
+            <div class="form-group">
+                <label for="companyBic">BIC</label>
+                <input type="text" id="companyBic" value="{{ profile.company_bic }}" placeholder="XXXXXXXXXXX">
+            </div>
+        </div>
+
+        <!-- Bouton de sauvegarde -->
+        <button onclick="saveSettings()">Enregistrer les Paramètres</button>
+    </div>
+
+    <script>
+        // Pré-remplir les taux de TVA depuis le modèle
+        document.addEventListener('DOMContentLoaded', function() {
+            const vatList = document.getElementById('vatList');
+            const vatRates = {{ profile.vat_rates|safe }} || [];
+            vatRates.forEach(rate => {
+                const vatItem = document.createElement('div');
+                vatItem.className = 'vat-item';
+                vatItem.innerHTML = `
+                    <span>TVA ${rate}%</span>
+                    <button class="remove-vat" onclick="this.parentElement.remove()">Supprimer</button>
+                `;
+                vatList.appendChild(vatItem);
+            });
+        });
+
+        function addVatRate() {
+            const vatRateInput = document.getElementById('vatRate');
+            const vatList = document.getElementById('vatList');
+            const rate = vatRateInput.value;
+
+            if (rate && !isNaN(rate) && rate >= 0) {
+                const vatItem = document.createElement('div');
+                vatItem.className = 'vat-item';
+                vatItem.innerHTML = `
+                    <span>TVA ${rate}%</span>
+                    <button class="remove-vat" onclick="this.parentElement.remove()">Supprimer</button>
+                `;
+                vatList.appendChild(vatItem);
+                vatRateInput.value = '';
+            } else {
+                alert('Veuillez entrer un taux de TVA valide.');
+            }
+        }
+
+        function saveSettings() {
+            const settings = {
+                companyName: document.getElementById('companyName').value,
+                companyAddress: document.getElementById('companyAddress').value,
+                companyPhone: document.getElementById('companyPhone').value,
+                companyEmail: document.getElementById('companyEmail').value,
+                companySiret: document.getElementById('companySiret').value,
+                companyLogo: document.getElementById('companyLogo').value,
+                paymentTerms: document.getElementById('paymentTerms').value,
+                companyIban: document.getElementById('companyIban').value,
+                companyBic: document.getElementById('companyBic').value,
+                vatRates: JSON.stringify(Array.from(document.querySelectorAll('.vat-item span')).map(item => parseFloat(item.textContent.replace('TVA ', '').replace('%', ''))))
+            };
+
+            fetch('{% url "settings" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: new URLSearchParams(settings).toString()
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Une erreur est survenue lors de l\'enregistrement.');
+            });
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

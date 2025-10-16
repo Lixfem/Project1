@@ -26,11 +26,6 @@
    =================================== */
 
 /* Sidebar principale avec dégradé bleu */
-.sidebar {
-    min-height: calc(100vh - 56px);  /* Hauteur = hauteur écran - hauteur navbar */
-    background: linear-gradient(135deg, var(--primary-color) 0%, #1e40af 100%);  /* Dégradé diagonal */
-    color: white;                     /* Texte blanc */
-}
 
 /* Styles des liens de navigation dans la sidebar */
 .sidebar .nav-link {

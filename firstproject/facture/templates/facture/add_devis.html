@@ -2,12 +2,21 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2 class="mb-4">Ajouter un Devis</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-file-invoice me-2"></i>
+            Ajouter un Devis
+        </h2>
+        <a href="{% url 'liste-devis' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+        </a>
+    </div>
 
     {% if messages %}
         <div class="alert-container">
             {% for message in messages %}
                 <div class="alert alert-{% if message.tags == 'success' %}success{% else %}danger{% endif %} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %} me-2"></i>
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
@@ -15,139 +24,332 @@
         </div>
     {% endif %}
 
-    <form   method="POST" action="{% url 'create-devis' %}">
+    <form method="POST" action="{% url 'create-devis' %}">
         {% csrf_token %}
         
-        <!-- Client Selection -->
-        <div class="mb-3">
-            <label for="client" class="form-label">Client</label>
-            <select class="form-select" id="client" name="client" required>
-                <option value="" disabled selected>Sélectionner un client</option>
-                {% for client in clients %}
-                    <option value="{{ client.id }}">{{ client.nomClient }} </option>
-                {% endfor %}
-            </select>
-        </div>
+        <!-- Informations du Devis -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informations du Devis</h5>
+            </div>
+            <div class="card-body">
+                {{ form.non_field_errors }}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.client.id_for_label }}" class="form-label">
+                            <i class="fas fa-user me-1"></i>Client <span class="text-danger">*</span>
+                        </label>
+                        {{ form.client }}
+                        {{ form.client.errors }}
+                    </div>
 
-        <!-- Produits -->
-        <div class="mb-3">
-            <h4>Produits</h4>
-            <div id="produits-container">
-                <div class="produit-item mb-3">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <label for="produit" class="form-label">Nom du Produit</label>
-                            <input type="text" class="form-control" name="produits[0][nom]" >
-                        </div>
-                        <div class="col-md-2">
-                            <label for="quantity" class="form-label">Quantité</label>
-                            <input type="number" class="form-control quantity" name="produits[0][quantity]" min="1" >
-                        </div>
-                        <div class="col-md-2">
-                            <label for="unit_price" class="form-label">Prix Unitaire</label>
-                            <input type="number" class="form-control unit-price" name="produits[0][unit_price]" min="0" step="0.01" >
-                        </div>
-                        <div class="col-md-2">
-                            <label for="total_price" class="form-label">Total</label>
-                            <input type="number" class="form-control total-price" name="produits[0][total_price]" readonly>
-                        </div>
-                        <div class="col-md-2 align-self-end">
-                            <button type="button" class="btn btn-danger remove-produit">Supprimer</button>
-                        </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.statut.id_for_label }}" class="form-label">
+                            <i class="fas fa-flag me-1"></i>Statut du Devis
+                        </label>
+                        {{ form.statut }}
+                        {{ form.statut.errors }}
                     </div>
                 </div>
-            </div>
-            <button type="button" class="btn btn-primary" id="add-produit">Ajouter un Produit</button>
-        </div>
 
-        <!-- Services -->
-        <div class="mb-3">
-            <h4>Services</h4>
-            <div id="services-container">
-                <div class="service-item mb-3">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label for="service" class="form-label">Nom du Service</label>
-                            <input type="text" class="form-control" name="services[0][nom]" >
-                        </div>
-                        <div class="col-md-4">
-                            <label for="montant_service" class="form-label">Montant</label>
-                            <input type="number" class="form-control service-price" name="services[0][montant]" min="0" step="0.01" >
-                        </div>
-                        <div class="col-md-2 align-self-end">
-                            <button type="button" class="btn btn-danger remove-service">Supprimer</button>
-                        </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.tva_rate.id_for_label }}" class="form-label">
+                            <i class="fas fa-percent me-1"></i>Taux de TVA (%)
+                        </label>
+                        {{ form.tva_rate }}
+                        <small class="form-text text-muted">Par défaut: 18%</small>
+                        {{ form.tva_rate.errors }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.date_validite.id_for_label }}" class="form-label">
+                            <i class="fas fa-calendar me-1"></i>Date de Validité
+                        </label>
+                        {{ form.date_validite }}
+                        {{ form.date_validite.errors }}
                     </div>
                 </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.commentaire.id_for_label }}" class="form-label">
+                        <i class="fas fa-comment me-1"></i>Commentaires
+                    </label>
+                    {{ form.commentaire }}
+                    {{ form.commentaire.errors }}
+                </div>
             </div>
-            <button type="button" class="btn btn-primary" id="add-service">Ajouter un Service</button>
+        </div>
+
+        <!-- Produits Formset -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-box me-2"></i>Produits</h5>
+            </div>
+            <div class="card-body">
+                {{ produit_formset.management_form }}
+                <div id="produits-container">
+                    {% for produit_form in produit_formset %}
+                        <div class="produit-item mb-3 p-3 border rounded" data-form-index="{{ forloop.counter0 }}">
+                            {{ produit_form.non_field_errors }}
+                            <div class="row">
+                                <div class="col-md-3 position-relative">
+                                    <label for="{{ produit_form.nom_produit.id_for_label }}" class="form-label">
+                                        Nom du Produit <span class="text-danger">*</span>
+                                    </label>
+                                    {{ produit_form.nom_produit }}
+                                    <ul class="list-group suggestions position-absolute w-100" style="display:none; z-index:1000;"></ul>
+                                    <small class="form-text text-muted">Tapez au moins 2 caractères pour rechercher</small>
+                                    {{ produit_form.nom_produit.errors }}
+                                </div>
+                                
+                                <div class="col-md-3">
+                                    <label for="{{ produit_form.description_produit.id_for_label }}" class="form-label">Description</label>
+                                    {{ produit_form.description_produit }}
+                                    {{ produit_form.description_produit.errors }}
+                                </div>
+                                
+                                <div class="col-md-1">
+                                    <label for="{{ produit_form.quantity.id_for_label }}" class="form-label">Qté</label>
+                                    {{ produit_form.quantity }}
+                                    {{ produit_form.quantity.errors }}
+                                </div>
+                                
+                                <div class="col-md-2">
+                                    <label for="{{ produit_form.prix_unitaire_produit.id_for_label }}" class="form-label">Prix Unit.</label>
+                                    {{ produit_form.prix_unitaire_produit }}
+                                    {{ produit_form.prix_unitaire_produit.errors }}
+                                </div>
+                                
+                                <div class="col-md-1">
+                                    <label for="total_price_{{ forloop.counter0 }}" class="form-label">Total</label>
+                                    <input type="number" class="form-control total-price bg-light" id="total_price_{{ forloop.counter0 }}" readonly>
+                                </div>
+                                
+                                <div class="col-md-2">
+                                    <label for="{{ produit_form.category.id_for_label }}" class="form-label">Catégorie</label>
+                                    {{ produit_form.category }}
+                                    {{ produit_form.category.errors }}
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-2">
+                                <div class="col-12 d-flex justify-content-end gap-2">
+                                    <a href="#" class="btn btn-sm btn-warning update-produit" style="display:none;">
+                                        <i class="fas fa-edit me-1"></i>Modifier dans la BDD
+                                    </a>
+                                    {% if forloop.first %}
+                                        <button type="button" class="btn btn-sm btn-danger remove-produit" disabled>
+                                            <i class="fas fa-trash me-1"></i>Supprimer
+                                        </button>
+                                    {% else %}
+                                        <button type="button" class="btn btn-sm btn-danger remove-produit">
+                                            <i class="fas fa-trash me-1"></i>Supprimer
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Hidden DELETE field -->
+                            {{ produit_form.DELETE }}
+                        </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="btn btn-success" id="add-produit">
+                    <i class="fas fa-plus me-2"></i>Ajouter un Produit
+                </button>
+            </div>
+        </div>
+
+        <!-- Services Formset -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-concierge-bell me-2"></i>Services</h5>
+            </div>
+            <div class="card-body">
+                {{ service_formset.management_form }}
+                <div id="services-container">
+                    {% for service_form in service_formset %}
+                        <div class="service-item mb-3 p-3 border rounded" data-form-index="{{ forloop.counter0 }}">
+                            {{ service_form.non_field_errors }}
+                            <div class="row">
+                                <div class="col-md-3 position-relative">
+                                    <label for="{{ service_form.nom_service.id_for_label }}" class="form-label">
+                                        Nom du Service <span class="text-danger">*</span>
+                                    </label>
+                                    {{ service_form.nom_service }}
+                                    <ul class="list-group suggestions position-absolute w-100" style="display:none; z-index:1000;"></ul>
+                                    <small class="form-text text-muted">Tapez au moins 2 caractères pour rechercher</small>
+                                    {{ service_form.nom_service.errors }}
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <label for="{{ service_form.description_service.id_for_label }}" class="form-label">Description</label>
+                                    {{ service_form.description_service }}
+                                    {{ service_form.description_service.errors }}
+                                </div>
+                                
+                                <div class="col-md-2">
+                                    <label for="{{ service_form.montant_du_service.id_for_label }}" class="form-label">Montant</label>
+                                    {{ service_form.montant_du_service }}
+                                    {{ service_form.montant_du_service.errors }}
+                                </div>
+                                
+                                <div class="col-md-3">
+                                    <label for="{{ service_form.date_prestation_service.id_for_label }}" class="form-label">Date Prestation</label>
+                                    {{ service_form.date_prestation_service }}
+                                    {{ service_form.date_prestation_service.errors }}
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-2">
+                                <div class="col-12 d-flex justify-content-end gap-2">
+                                    <a href="#" class="btn btn-sm btn-warning update-service" style="display:none;">
+                                        <i class="fas fa-edit me-1"></i>Modifier dans la BDD
+                                    </a>
+                                    {% if forloop.first %}
+                                        <button type="button" class="btn btn-sm btn-danger remove-service" disabled>
+                                            <i class="fas fa-trash me-1"></i>Supprimer
+                                        </button>
+                                    {% else %}
+                                        <button type="button" class="btn btn-sm btn-danger remove-service">
+                                            <i class="fas fa-trash me-1"></i>Supprimer
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Hidden DELETE field -->
+                            {{ service_form.DELETE }}
+                        </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="btn btn-info" id="add-service">
+                    <i class="fas fa-plus me-2"></i>Ajouter un Service
+                </button>
+            </div>
         </div>
 
         <!-- Total Général -->
-        <div class="mb-3">
-            <label for="total_general" class="form-label">Total Général</label>
-            <input type="number" class="form-control" id="total_general" name="total_general" readonly>
+        <div class="card mb-4">
+            <div class="card-body bg-light">
+                <div class="row">
+                    <div class="col-md-6 offset-md-6">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong>Total HT:</strong>
+                            <span id="total_ht" class="fs-5">0.00 FCFA</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong>TVA:</strong>
+                            <span id="total_tva" class="fs-5">0.00 FCFA</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                            <strong class="fs-4">Total TTC:</strong>
+                            <span id="total_general" class="fs-4 text-primary fw-bold">0.00 FCFA</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="mb-3">
-            <label for="statut_devis" class="form-label">Statut du Devis</label>
-            <select name="statut_devis" class="form-select" id="statut_devis">
-                    <option value="" disabled selected>Selectionner un statut</option>
-                    <option value="1">En Attente</option>
-                    <option value="2">Accepté</option>
-                    <option value="3">Refusé</option>
-            </select>
-               
 
-
+        <!-- Buttons -->
+        <div class="d-flex justify-content-end gap-2 mb-4">
+            <a href="{% url 'liste-devis' %}" class="btn btn-secondary">
+                <i class="fas fa-times me-2"></i>Annuler
+            </a>
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-save me-2"></i>Enregistrer le Devis
+            </button>
         </div>
-        <!-- Commentaire -->
-        <div class="mb-3">
-            <label for="commentaireDevis" class="form-label">Commentaires</label>
-            <textarea class="form-control" id="commentaireDevis" name="commentaireDevis" rows="4"></textarea>
-        </div>
-
-        <!-- Submit Button -->
-        <button type="submit" class="btn btn-success">Enregistrer le Devis</button>
     </form>
 </div>
 
-<!-- Bootstrap CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+    .suggestions {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 0.25rem;
+        max-height: 250px;
+        overflow-y: auto;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .suggestions li {
+        cursor: pointer;
+        padding: 0.5rem 1rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .suggestions li:hover {
+        background-color: #f8f9fa;
+    }
+    .suggestions li:last-child {
+        border-bottom: none;
+    }
+    .produit-item, .service-item {
+        background-color: #f8f9fa;
+        transition: all 0.3s ease;
+    }
+    .produit-item:hover, .service-item:hover {
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+</style>
 
-<!-- JavaScript for Dynamic Form and Calculations -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    let produitIndex = 1;
-    let serviceIndex = 1;
+    let produitIndex = {{ produit_formset.total_form_count }};
+    let serviceIndex = {{ service_formset.total_form_count }};
+
+    const searchProduitsUrl = "{% url 'search-produits' %}";
+    const searchServicesUrl = "{% url 'search-services' %}";
+    const addElementUrl = "{% url 'ajouter_element' %}";
+    const updateArticleBase = "{% url 'update-article' %}";
+
+    const produitTemplate = document.querySelector('.produit-item').cloneNode(true);
+    const serviceTemplate = document.querySelector('.service-item').cloneNode(true);
+
+    const debounce = (func, delay) => {
+        let timeout;
+        return (...args) => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func(...args), delay);
+        };
+    };
 
     // Add Product
     document.getElementById('add-produit').addEventListener('click', function () {
         const container = document.getElementById('produits-container');
-        const produitItem = document.createElement('div');
-        produitItem.classList.add('produit-item', 'mb-3');
-        produitItem.innerHTML = `
-            <div class="row">
-                <div class="col-md-4">
-                    <label for="produit" class="form-label">Nom du Produit</label>
-                    <input type="text" class="form-control" name="produits[${produitIndex}][nom]" required>
-                </div>
-                <div class="col-md-2">
-                    <label for="quantity" class="form-label">Quantité</label>
-                    <input type="number" class="form-control quantity" name="produits[${produitIndex}][quantity]" min="1" required>
-                </div>
-                <div class="col-md-2">
-                    <label for="unit_price" class="form-label">Prix Unitaire</label>
-                    <input type="number" class="form-control unit-price" name="produits[${produitIndex}][unit_price]" min="0" step="0.01" required>
-                </div>
-                <div class="col-md-2">
-                    <label for="total_price" class="form-label">Total</label>
-                    <input type="number" class="form-control total-price" name="produits[${produitIndex}][total_price]" readonly>
-                </div>
-                <div class="col-md-2 align-self-end">
-                    <button type="button" class="btn btn-danger remove-produit">Supprimer</button>
-                </div>
-            </div>`;
-        container.appendChild(produitItem);
+        const newProduit = produitTemplate.cloneNode(true);
+        newProduit.dataset.formIndex = produitIndex;
+
+        newProduit.querySelectorAll('input, select, textarea').forEach(input => {
+            if (input.name && !input.classList.contains('total-price')) {
+                input.name = input.name.replace(/form-\d+-/, `form-${produitIndex}-`);
+                input.id = input.id.replace(/form-\d+-/, `form-${produitIndex}-`);
+                input.value = input.type === 'number' && input.name.includes('quantity') ? '1' : '';
+            }
+        });
+
+        newProduit.querySelectorAll('label').forEach(label => {
+            if (label.htmlFor) {
+                label.htmlFor = label.htmlFor.replace(/form-\d+-/, `form-${produitIndex}-`);
+            }
+        });
+
+        const totalPriceInput = newProduit.querySelector('.total-price');
+        totalPriceInput.id = `total_price_${produitIndex}`;
+        totalPriceInput.value = '0.00';
+
+        const removeButton = newProduit.querySelector('.remove-produit');
+        removeButton.disabled = false;
+
+        const updateButton = newProduit.querySelector('.update-produit');
+        updateButton.style.display = 'none';
+
+        container.appendChild(newProduit);
+
+        const totalForms = document.querySelector('input[name$="-TOTAL_FORMS"]');
+        totalForms.value = parseInt(totalForms.value) + 1;
+
         produitIndex++;
         attachEventListeners();
         updateTotalGeneral();
@@ -156,99 +358,255 @@ document.addEventListener('DOMContentLoaded', function () {
     // Add Service
     document.getElementById('add-service').addEventListener('click', function () {
         const container = document.getElementById('services-container');
-        const serviceItem = document.createElement('div');
-        serviceItem.classList.add('service-item', 'mb-3');
-        serviceItem.innerHTML = `
-            <div class="row">
-                <div class="col-md-6">
-                    <label for="service" class="form-label">Nom du Service</label>
-                    <input type="text" class="form-control" name="services[${serviceIndex}][nom]" required>
-                </div>
-                <div class="col-md-4">
-                    <label for="montant_service" class="form-label">Montant</label>
-                    <input type="number" class="form-control service-price" name="services[${serviceIndex}][montant]" min="0" step="0.01" required>
-                </div>
-                <div class="col-md-2 align-self-end">
-                    <button type="button" class="btn btn-danger remove-service">Supprimer</button>
-                </div>
-            </div>`;
-        container.appendChild(serviceItem);
+        const newService = serviceTemplate.cloneNode(true);
+        newService.dataset.formIndex = serviceIndex;
+
+        newService.querySelectorAll('input, select, textarea').forEach(input => {
+            if (input.name) {
+                input.name = input.name.replace(/form-\d+-/, `form-${serviceIndex}-`);
+                input.id = input.id.replace(/form-\d+-/, `form-${serviceIndex}-`);
+                input.value = '';
+            }
+        });
+
+        newService.querySelectorAll('label').forEach(label => {
+            if (label.htmlFor) {
+                label.htmlFor = label.htmlFor.replace(/form-\d+-/, `form-${serviceIndex}-`);
+            }
+        });
+
+        const removeButton = newService.querySelector('.remove-service');
+        removeButton.disabled = false;
+
+        const updateButton = newService.querySelector('.update-service');
+        updateButton.style.display = 'none';
+
+        container.appendChild(newService);
+
+        const totalForms = document.querySelector('input[name$="-TOTAL_FORMS"]');
+        totalForms.value = parseInt(totalForms.value) + 1;
+
         serviceIndex++;
         attachEventListeners();
         updateTotalGeneral();
     });
 
-    // Attach Event Listeners for Remove Buttons and Price Calculations
     function attachEventListeners() {
-        // Remove Product
+        // Remove handlers
         document.querySelectorAll('.remove-produit').forEach(button => {
-            button.removeEventListener('click', removeProduitHandler); // Prevent duplicate listeners
-            button.addEventListener('click', removeProduitHandler);
-        });
-
-        // Remove Service
-        document.querySelectorAll('.remove-service').forEach(button => {
-            button.removeEventListener('click', removeServiceHandler); // Prevent duplicate listeners
-            button.addEventListener('click', removeServiceHandler);
-        });
-
-        // Update Total for Products
-        document.querySelectorAll('.produit-item').forEach(item => {
-            const quantityInput = item.querySelector('.quantity');
-            const unitPriceInput = item.querySelector('.unit-price');
-            const totalPriceInput = item.querySelector('.total-price');
-
-            quantityInput.removeEventListener('input', updateProductTotal); // Prevent duplicate listeners
-            unitPriceInput.removeEventListener('input', updateProductTotal); // Prevent duplicate listeners
-            quantityInput.addEventListener('input', updateProductTotal);
-            unitPriceInput.addEventListener('input', updateProductTotal);
-
-            function updateProductTotal() {
-                const quantity = parseFloat(quantityInput.value) || 0;
-                const unitPrice = parseFloat(unitPriceInput.value) || 0;
-                const total = quantity * unitPrice;
-                totalPriceInput.value = total.toFixed(2);
+            button.onclick = function() {
+                const item = this.closest('.produit-item');
+                const deleteInput = item.querySelector('input[name$="-DELETE"]');
+                if (deleteInput) {
+                    deleteInput.value = 'on';
+                    item.style.display = 'none';
+                } else {
+                    item.remove();
+                }
                 updateTotalGeneral();
+            };
+        });
+
+        document.querySelectorAll('.remove-service').forEach(button => {
+            button.onclick = function() {
+                const item = this.closest('.service-item');
+                const deleteInput = item.querySelector('input[name$="-DELETE"]');
+                if (deleteInput) {
+                    deleteInput.value = 'on';
+                    item.style.display = 'none';
+                } else {
+                    item.remove();
+                }
+                updateTotalGeneral();
+            };
+        });
+
+        // Product calculations
+        document.querySelectorAll('.produit-item').forEach(item => {
+            if (item.style.display !== 'none') {
+                const qtyInput = item.querySelector('input[name$="quantity"]');
+                const priceInput = item.querySelector('input[name$="prix_unitaire_produit"]');
+                const totalInput = item.querySelector('.total-price');
+
+                const updateTotal = () => {
+                    const qty = parseFloat(qtyInput.value) || 0;
+                    const price = parseFloat(priceInput.value) || 0;
+                    totalInput.value = (qty * price).toFixed(2);
+                    updateTotalGeneral();
+                };
+
+                qtyInput.addEventListener('input', updateTotal);
+                priceInput.addEventListener('input', updateTotal);
+
+                initProduitAutocomplete(item);
             }
         });
 
-        // Update Total on Service Price Change
-        document.querySelectorAll('.service-price').forEach(input => {
-            input.removeEventListener('input', updateTotalGeneral); // Prevent duplicate listeners
+        // Service calculations
+        document.querySelectorAll('.service-item input[name$="montant_du_service"]').forEach(input => {
             input.addEventListener('input', updateTotalGeneral);
         });
+
+        document.querySelectorAll('.service-item').forEach(item => {
+            if (item.style.display !== 'none') {
+                initServiceAutocomplete(item);
+            }
+        });
     }
 
-    // Handlers for removing items
-    function removeProduitHandler() {
-        this.closest('.produit-item').remove();
-        updateTotalGeneral();
+    function initProduitAutocomplete(item) {
+        const input = item.querySelector('input[name$="nom_produit"]');
+        const suggestions = item.querySelector('.suggestions');
+
+        input.addEventListener('input', debounce(async (e) => {
+            const value = e.target.value;
+            suggestions.innerHTML = '';
+            suggestions.style.display = 'none';
+
+            if (value.length < 2) return;
+
+            try {
+                const response = await fetch(`${searchProduitsUrl}?q=${encodeURIComponent(value)}`);
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    const li = document.createElement('li');
+                    li.classList.add('list-group-item', 'text-center');
+                    li.innerHTML = `<span class="text-muted">Aucun produit trouvé.</span> <a href="${addElementUrl}" target="_blank" class="btn btn-sm btn-success ms-2"><i class="fas fa-plus"></i> Ajouter</a>`;
+                    suggestions.appendChild(li);
+                    suggestions.style.display = 'block';
+                } else {
+                    data.forEach(prod => {
+                        const li = document.createElement('li');
+                        li.classList.add('list-group-item');
+                        li.innerHTML = `<strong>${prod.nom}</strong><br><small class="text-muted">${prod.description || 'Pas de description'} - ${prod.prix} FCFA</small>`;
+                        li.dataset.id = prod.id;
+
+                        li.addEventListener('click', () => {
+                            input.value = prod.nom;
+                            item.querySelector('textarea[name$="description_produit"]').value = prod.description || '';
+                            item.querySelector('input[name$="prix_unitaire_produit"]').value = prod.prix || 0;
+                            if (prod.category) {
+                                item.querySelector('select[name$="category"]').value = prod.category;
+                            }
+
+                            const updateBtn = item.querySelector('.update-produit');
+                            updateBtn.style.display = 'inline-block';
+                            updateBtn.href = `${updateArticleBase}?type_element=produit&id=${prod.id}`;
+
+                            suggestions.innerHTML = '';
+                            suggestions.style.display = 'none';
+
+                            item.querySelector('input[name$="quantity"]').dispatchEvent(new Event('input'));
+                        });
+
+                        suggestions.appendChild(li);
+                    });
+                    suggestions.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }, 300));
+
+        input.addEventListener('blur', () => setTimeout(() => {
+            suggestions.innerHTML = '';
+            suggestions.style.display = 'none';
+        }, 200));
     }
 
-    function removeServiceHandler() {
-        this.closest('.service-item').remove();
-        updateTotalGeneral();
+    function initServiceAutocomplete(item) {
+        const input = item.querySelector('input[name$="nom_service"]');
+        const suggestions = item.querySelector('.suggestions');
+
+        input.addEventListener('input', debounce(async (e) => {
+            const value = e.target.value;
+            suggestions.innerHTML = '';
+            suggestions.style.display = 'none';
+
+            if (value.length < 2) return;
+ 
+            try {
+                const response = await fetch(`${searchServicesUrl}?q=${encodeURIComponent(value)}`);
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    const li = document.createElement('li');
+                    li.classList.add('list-group-item', 'text-center');
+                    li.innerHTML = `<span class="text-muted">Aucun service trouvé.</span> <a href="${addElementUrl}" target="_blank" class="btn btn-sm btn-success ms-2"><i class="fas fa-plus"></i> Ajouter</a>`;
+                    suggestions.appendChild(li);
+                    suggestions.style.display = 'block';
+                } else {
+                    data.forEach(serv => {
+                        const li = document.createElement('li');
+                        li.classList.add('list-group-item');
+                        li.innerHTML = `<strong>${serv.nom}</strong><br><small class="text-muted">${serv.description || 'Pas de description'} - ${serv.montant} FCFA</small>`;
+
+                        li.addEventListener('click', () => {
+                            input.value = serv.nom;
+                            item.querySelector('textarea[name$="description_service"]').value = serv.description || '';
+                            item.querySelector('input[name$="montant_du_service"]').value = serv.montant || 0;
+                            if (serv.date) {
+                                item.querySelector('input[name$="date_prestation_service"]').value = serv.date;
+                            }
+
+                            const updateBtn = item.querySelector('.update-service');
+                            updateBtn.style.display = 'inline-block';
+                            updateBtn.href = `${updateArticleBase}?type_element=service&id=${serv.id}`;
+
+                            suggestions.innerHTML = '';
+                            suggestions.style.display = 'none';
+
+                            item.querySelector('input[name$="montant_du_service"]').dispatchEvent(new Event('input'));
+                        });
+
+                        suggestions.appendChild(li);
+                    });
+                    suggestions.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }, 300));
+
+        input.addEventListener('blur', () => setTimeout(() => {
+            suggestions.innerHTML = '';
+            suggestions.style.display = 'none';
+        }, 200));
     }
 
-    // Calculate Total General
     function updateTotalGeneral() {
-        let totalGeneral = 0;
+        let totalHT = 0;
 
-        // Sum Product Totals
-        document.querySelectorAll('.total-price').forEach(input => {
-            totalGeneral += parseFloat(input.value) || 0;
+        // Produits
+        document.querySelectorAll('.produit-item').forEach(item => {
+            if (item.style.display !== 'none') {
+                const total = parseFloat(item.querySelector('.total-price').value) || 0;
+                totalHT += total;
+            }
         });
 
-        // Sum Service Totals
-        document.querySelectorAll('.service-price').forEach(input => {
-            totalGeneral += parseFloat(input.value) || 0;
+        // Services
+        document.querySelectorAll('.service-item').forEach(item => {
+            if (item.style.display !== 'none') {
+                const montant = parseFloat(item.querySelector('input[name$="montant_du_service"]').value) || 0;
+                totalHT += montant;
+            }
         });
 
-        document.getElementById('total_general').value = totalGeneral.toFixed(2);
+        // TVA
+        const tvaRate = parseFloat(document.querySelector('#{{ form.tva_rate.id_for_label }}').value) || 18;
+        const totalTVA = totalHT * (tvaRate / 100);
+        const totalTTC = totalHT + totalTVA;
+
+        document.getElementById('total_ht').textContent = totalHT.toFixed(2) + ' FCFA';
+        document.getElementById('total_tva').textContent = totalTVA.toFixed(2) + ' FCFA';
+        document.getElementById('total_general').textContent = totalTTC.toFixed(2) + ' FCFA';
     }
 
-    // Initialize Event Listeners
+    // Initialize
     attachEventListeners();
+    updateTotalGeneral();
 });
 </script>
 {% endblock %}

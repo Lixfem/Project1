@@ -1,9 +1,10 @@
 {% extends 'facture/base.html' %}
+{% load humanize %}
 <!-- {% load static %} -->
 
 {% block content %}
     <!-- Main content -->
-    <main class="col-lg-10 main-content p-0">
+    <main class="col-lg-10 p-0">
         <!-- Breadcrumb -->
         {% block breadcrumb %}
         <div class="bg-white border-bottom px-4 py-3">
@@ -34,31 +35,33 @@
                 </div>
             </div>
 
-            <!-- Statistiques rapides -->
+            <!-- Statistiques rapides  ---------------------->
+
+            <!-- Factures impayes -->
             <div class="row mb-4">
-                <div class="col-lg-3 col-md-6 mb-3">
+                <div class="col-xl-3 col-md-6 mb-3">
                     <div class="card stats-card success">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
                                 <div class="flex-grow-1">
                                     <h6 class="text-muted mb-1">Factures payées</h6>
-                                    <h4 class="mb-0">15 240 €</h4>
+                                    <h4 class="mb-0">{{ total_factures_payees|floatformat:2|intcomma }} FCFA</h4>
                                 </div>
                                 <div class="text-success">
-                                    <i class="fas fa-euro-sign fa-2x"></i>
+                                    <i class="fas fa-franc-sign fa-2x"></i> <!-- Icône Font Awesome pour le franc -->
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="col-lg-3 col-md-6 mb-3">
+                <div class="col-xl-3 col-md-6 mb-3">
                     <div class="card stats-card warning">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
                                 <div class="flex-grow-1">
                                     <h6 class="text-muted mb-1">Factures en attente</h6>
-                                    <h4 class="mb-0">8 560 €</h4>
+                                    <h4 class="mb-0">{{ total_factures_en_attente| floatformat:2|intcomma}} FCFA</h4>
                                 </div>
                                 <div class="text-warning">
                                     <i class="fas fa-clock fa-2x"></i>
@@ -68,13 +71,13 @@
                     </div>
                 </div>
                 
-                <div class="col-lg-3 col-md-6 mb-3">
+                <div class="col-xl-3 col-md-6 mb-3">
                     <div class="card stats-card">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
                                 <div class="flex-grow-1">
                                     <h6 class="text-muted mb-1">Devis en cours</h6>
-                                    <h4 class="mb-0">12</h4>
+                                    <h4 class="mb-0">{{total_devis_en_cours}}</h4>
                                 </div>
                                 <div class="text-primary">
                                     <i class="fas fa-file-invoice fa-2x"></i>
@@ -84,13 +87,13 @@
                     </div>
                 </div>
                 
-                <div class="col-lg-3 col-md-6 mb-3">
+                <div class="col-xl-3 col-md-6 mb-3">
                     <div class="card stats-card">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
                                 <div class="flex-grow-1">
                                     <h6 class="text-muted mb-1">Clients actifs</h6>
-                                    <h4 class="mb-0">47</h4>
+                                    <h4 class="mb-0">{{nombre_clients_actifs}}</h4>
                                 </div>
                                 <div class="text-info">
                                     <i class="fas fa-users fa-2x"></i>
@@ -110,29 +113,35 @@
                         </div>
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-md-3 mb-3">
-                                    <a href="{% url 'create-facture' %}" class="btn btn-primary w-100">
+                                <div class="col-md-2 mb-3">
+                                    <a href="{% url 'create-devis' %}" class="btn btn-primary w-100">
                                         <i class="fas fa-plus-circle me-2"></i>
                                         Nouveau devis
                                     </a>
                                 </div>
-                                <div class="col-md-3 mb-3">
+                                <div class="col-md-2 mb-3">
                                     <a href="{%url 'create-facture' %}" class="btn btn-success w-100">
                                         <i class="fas fa-receipt me-2"></i>
                                         Nouvelle facture
                                     </a>
                                 
                                 </div>
-                                <div class="col-md-3 mb-3">
+                                <div class="col-md-2 mb-3">
                                     <a href="{% url 'create-client'%}" class="btn btn-info w-100">
                                         <i class="fas fa-user-plus me-2"></i>
                                         Nouveau client
                                     </a>
                                 </div>
-                                <div class="col-md-3 mb-3">
-                                    <a href="#" class="btn btn-secondary w-100">
+                                <div class="col-md-2 mb-3">
+                                    <a href="{% url 'stat'%}" class="btn btn-secondary w-100">
                                         <i class="fas fa-chart-bar me-2"></i>
                                         Voir les stats
+                                    </a>
+                                </div>
+                                <div class="col-md-2 mb-3">
+                                    <a href="{% url 'ajouter_element' %}" class="btn btn-dark w-100">
+                                        <i class="fas fa-plus-circle me-2"></i>
+                                        Nouvel article
                                     </a>
                                 </div>
                             </div>

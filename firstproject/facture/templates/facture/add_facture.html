@@ -1,254 +1,162 @@
 {% extends 'facture/base.html' %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2 class="mb-4">Ajouter une Facture</h2>
-
-    {% if messages %}
-        <div class="alert-container">
+ <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .formset-container { margin-bottom: 20px; }
+        .formset-item { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; }
+        .formset-item .form-group { margin-bottom: 10px; }
+    </style>
+<div class="container mt-4">
+        <h1>Créer une facture</h1>
+        {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{% if message.tags == 'success' %}success{% else %}danger{% endif %} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
             {% endfor %}
-        </div>
-    {% endif %}
+        {% endif %}
 
-    <form   method="POST" action="{% url 'create-facture' %}">
-        {% csrf_token %}
-        
-        <!-- Client Selection -->
-        <div class="mb-3">
-            <label for="client" class="form-label">Client</label>
-            <select class="form-select" id="client" name="client" required>
-                <option value="" disabled selected>Sélectionner un client</option>
-                {% for client in clients %}
-                    <option value="{{ client.id }}">{{ client.nomClient }} </option>
+        <form method="post">
+            {% csrf_token %}
+            <!-- Formulaire principal -->
+            <div class="form-group">
+                {{ form.client.label_tag }}
+                {{ form.client }}
+                {% if form.client.errors %}
+                    <div class="text-danger">{{ form.client.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.montant_accompte.label_tag }}
+                {{ form.montant_accompte }}
+                {% if form.montant_accompte.errors %}
+                    <div class="text-danger">{{ form.montant_accompte.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.tva_rate.label_tag }}
+                {{ form.tva_rate }}
+                {% if form.tva_rate.errors %}
+                    <div class="text-danger">{{ form.tva_rate.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.statut.label_tag }}
+                {{ form.statut }}
+                {% if form.statut.errors %}
+                    <div class="text-danger">{{ form.statut.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.commentaire.label_tag }}
+                {{ form.commentaire }}
+                {% if form.commentaire.errors %}
+                    <div class="text-danger">{{ form.commentaire.errors }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Produits -->
+            <h3>Produits</h3>
+            {{ produit_formset.management_form }}
+            <div id="produit-formset" class="formset-container">
+                {% for produit_form in produit_formset %}
+                    <div class="formset-item">
+                        {{ produit_form.nom_produit.label_tag }}
+                        {{ produit_form.nom_produit }}
+                        {% if produit_form.nom_produit.errors %}
+                            <div class="text-danger">{{ produit_form.nom_produit.errors }}</div>
+                        {% endif %}
+
+                        {{ produit_form.description_produit.label_tag }}
+                        {{ produit_form.description_produit }}
+                        {% if produit_form.description_produit.errors %}
+                            <div class="text-danger">{{ produit_form.description_produit.errors }}</div>
+                        {% endif %}
+
+                        {{ produit_form.prix_unitaire_produit.label_tag }}
+                        {{ produit_form.prix_unitaire_produit }}
+                        {% if produit_form.prix_unitaire_produit.errors %}
+                            <div class="text-danger">{{ produit_form.prix_unitaire_produit.errors }}</div>
+                        {% endif %}
+
+                        {{ produit_form.quantity.label_tag }}
+                        {{ produit_form.quantity }}
+                        {% if produit_form.quantity.errors %}
+                            <div class="text-danger">{{ produit_form.quantity.errors }}</div>
+                        {% endif %}
+
+                        {{ produit_form.category.label_tag }}
+                        {{ produit_form.category }}
+                        {% if produit_form.category.errors %}
+                            <div class="text-danger">{{ produit_form.category.errors }}</div>
+                        {% endif %}
+
+                        {% if produit_form.DELETE %}
+                            {{ produit_form.DELETE }}
+                            <label><input type="checkbox" name="{{ produit_form.DELETE.name }}" /> Supprimer</label>
+                        {% endif %}
+                    </div>
                 {% endfor %}
-            </select>
-        </div>
-
-        <!-- Produits -->
-        <div class="mb-3">
-            <h4>Produits</h4>
-            <div id="produits-container">
-                <div class="produit-item mb-3">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <label for="produit" class="form-label">Nom du Produit</label>
-                            <input type="text" class="form-control" name="produits[0][nom]" >
-                        </div>
-                        <div class="col-md-2">
-                            <label for="quantity" class="form-label">Quantité</label>
-                            <input type="number" class="form-control quantity" name="produits[0][quantity]" min="1" >
-                        </div>
-                        <div class="col-md-2">
-                            <label for="unit_price" class="form-label">Prix Unitaire</label>
-                            <input type="number" class="form-control unit-price" name="produits[0][unit_price]" min="0" step="0.01" >
-                        </div>
-                        <div class="col-md-2">
-                            <label for="total_price" class="form-label">Total</label>
-                            <input type="number" class="form-control total-price" name="produits[0][total_price]" readonly>
-                        </div>
-                        <div class="col-md-2 align-self-end">
-                            <button type="button" class="btn btn-danger remove-produit">Supprimer</button>
-                        </div>
-                    </div>
-                </div>
             </div>
-            <button type="button" class="btn btn-primary" id="add-produit">Ajouter un Produit</button>
-        </div>
 
-        <!-- Services -->
-        <div class="mb-3">
-            <h4>Services</h4>
-            <div id="services-container">
-                <div class="service-item mb-3">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label for="service" class="form-label">Nom du Service</label>
-                            <input type="text" class="form-control" name="services[0][nom]" >
-                        </div>
-                        <div class="col-md-4">
-                            <label for="montant_service" class="form-label">Montant</label>
-                            <input type="number" class="form-control service-price" name="services[0][montant]" min="0" step="0.01" >
-                        </div>
-                        <div class="col-md-2 align-self-end">
-                            <button type="button" class="btn btn-danger remove-service">Supprimer</button>
-                        </div>
+            <!-- Services -->
+            <h3>Services</h3>
+            {{ service_formset.management_form }}
+            <div id="service-formset" class="formset-container">
+                {% for service_form in service_formset %}
+                    <div class="formset-item">
+                        {{ service_form.nom_service.label_tag }}
+                        {{ service_form.nom_service }}
+                        {% if service_form.nom_service.errors %}
+                            <div class="text-danger">{{ service_form.nom_service.errors }}</div>
+                        {% endif %}
+
+                        {{ service_form.description_service.label_tag }}
+                        {{ service_form.description_service }}
+                        {% if service_form.description_service.errors %}
+                            <div class="text-danger">{{ service_form.description_service.errors }}</div>
+                        {% endif %}
+
+                        {{ service_form.montant_du_service.label_tag }}
+                        {{ service_form.montant_du_service }}
+                        {% if service_form.montant_du_service.errors %}
+                            <div class="text-danger">{{ service_form.montant_du_service.errors }}</div>
+                        {% endif %}
+
+                        {{ service_form.date_prestation_service.label_tag }}
+                        {{ service_form.date_prestation_service }}
+                        {% if service_form.date_prestation_service.errors %}
+                            <div class="text-danger">{{ service_form.date_prestation_service.errors }}</div>
+                        {% endif %}
+
+                        {% if service_form.DELETE %}
+                            {{ service_form.DELETE }}
+                            <label><input type="checkbox" name="{{ service_form.DELETE.name }}" /> Supprimer</label>
+                        {% endif %}
                     </div>
-                </div>
+                {% endfor %}
             </div>
-            <button type="button" class="btn btn-primary" id="add-service">Ajouter un Service</button>
-        </div>
 
-        <!-- Total Général -->
-        <div class="mb-3">
-            <label for="total_general" class="form-label">Total Général</label>
-            <input type="number" class="form-control" id="total_general" name="total_general" readonly>
-        </div>
-        <div class="mb-3">
-            <label for="statut_facture" class="form-label">Statut de la Facture</label>
-            <select name="statut_facture" class="form-select" id="statut_facture">
-                    <option value="" disabled selected>Selectionner un statut</option>
-                    <option value="1">Payé</option>
-                    <option value="2">En Attente</option>
-                    <option value="3">Annulée</option>
-            </select>
-               
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </form>
+    </div>
 
-
-        </div>
-        <!-- Commentaire -->
-        <div class="mb-3">
-            <label for="commentaireFacture" class="form-label">Commentaires</label>
-            <textarea class="form-control" id="commentaireFacture" name="commentaireFacture" rows="4"></textarea>
-        </div>
-
-        <!-- Submit Button -->
-        <button type="submit" class="btn btn-success">Enregistrer la Facture</button>
-    </form>
-</div>
-
-<!-- Bootstrap CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<!-- JavaScript for Dynamic Form and Calculations -->
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    let produitIndex = 1;
-    let serviceIndex = 1;
-
-    // Add Product
-    document.getElementById('add-produit').addEventListener('click', function () {
-        const container = document.getElementById('produits-container');
-        const produitItem = document.createElement('div');
-        produitItem.classList.add('produit-item', 'mb-3');
-        produitItem.innerHTML = `
-            <div class="row">
-                <div class="col-md-4">
-                    <label for="produit" class="form-label">Nom du Produit</label>
-                    <input type="text" class="form-control" name="produits[${produitIndex}][nom]" required>
-                </div>
-                <div class="col-md-2">
-                    <label for="quantity" class="form-label">Quantité</label>
-                    <input type="number" class="form-control quantity" name="produits[${produitIndex}][quantity]" min="1" required>
-                </div>
-                <div class="col-md-2">
-                    <label for="unit_price" class="form-label">Prix Unitaire</label>
-                    <input type="number" class="form-control unit-price" name="produits[${produitIndex}][unit_price]" min="0" step="0.01" required>
-                </div>
-                <div class="col-md-2">
-                    <label for="total_price" class="form-label">Total</label>
-                    <input type="number" class="form-control total-price" name="produits[${produitIndex}][total_price]" readonly>
-                </div>
-                <div class="col-md-2 align-self-end">
-                    <button type="button" class="btn btn-danger remove-produit">Supprimer</button>
-                </div>
-            </div>`;
-        container.appendChild(produitItem);
-        produitIndex++;
-        attachEventListeners();
-        updateTotalGeneral();
-    });
-
-    // Add Service
-    document.getElementById('add-service').addEventListener('click', function () {
-        const container = document.getElementById('services-container');
-        const serviceItem = document.createElement('div');
-        serviceItem.classList.add('service-item', 'mb-3');
-        serviceItem.innerHTML = `
-            <div class="row">
-                <div class="col-md-6">
-                    <label for="service" class="form-label">Nom du Service</label>
-                    <input type="text" class="form-control" name="services[${serviceIndex}][nom]" required>
-                </div>
-                <div class="col-md-4">
-                    <label for="montant_service" class="form-label">Montant</label>
-                    <input type="number" class="form-control service-price" name="services[${serviceIndex}][montant]" min="0" step="0.01" required>
-                </div>
-                <div class="col-md-2 align-self-end">
-                    <button type="button" class="btn btn-danger remove-service">Supprimer</button>
-                </div>
-            </div>`;
-        container.appendChild(serviceItem);
-        serviceIndex++;
-        attachEventListeners();
-        updateTotalGeneral();
-    });
-
-    // Attach Event Listeners for Remove Buttons and Price Calculations
-    function attachEventListeners() {
-        // Remove Product
-        document.querySelectorAll('.remove-produit').forEach(button => {
-            button.removeEventListener('click', removeProduitHandler); // Prevent duplicate listeners
-            button.addEventListener('click', removeProduitHandler);
+    <!-- Script pour ajout dynamique (optionnel) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery.formset@1.2.2/jquery.formset.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#produit-formset').formset({
+                prefix: '{{ produit_formset.prefix }}',
+                addText: 'Ajouter un produit',
+                deleteText: 'Supprimer'
+            });
+            $('#service-formset').formset({
+                prefix: '{{ service_formset.prefix }}',
+                addText: 'Ajouter un service',
+                deleteText: 'Supprimer'
+            });
         });
-
-        // Remove Service
-        document.querySelectorAll('.remove-service').forEach(button => {
-            button.removeEventListener('click', removeServiceHandler); // Prevent duplicate listeners
-            button.addEventListener('click', removeServiceHandler);
-        });
-
-        // Update Total for Products
-        document.querySelectorAll('.produit-item').forEach(item => {
-            const quantityInput = item.querySelector('.quantity');
-            const unitPriceInput = item.querySelector('.unit-price');
-            const totalPriceInput = item.querySelector('.total-price');
-
-            quantityInput.removeEventListener('input', updateProductTotal); // Prevent duplicate listeners
-            unitPriceInput.removeEventListener('input', updateProductTotal); // Prevent duplicate listeners
-            quantityInput.addEventListener('input', updateProductTotal);
-            unitPriceInput.addEventListener('input', updateProductTotal);
-
-            function updateProductTotal() {
-                const quantity = parseFloat(quantityInput.value) || 0;
-                const unitPrice = parseFloat(unitPriceInput.value) || 0;
-                const total = quantity * unitPrice;
-                totalPriceInput.value = total.toFixed(2);
-                updateTotalGeneral();
-            }
-        });
-
-        // Update Total on Service Price Change
-        document.querySelectorAll('.service-price').forEach(input => {
-            input.removeEventListener('input', updateTotalGeneral); // Prevent duplicate listeners
-            input.addEventListener('input', updateTotalGeneral);
-        });
-    }
-
-    // Handlers for removing items
-    function removeProduitHandler() {
-        this.closest('.produit-item').remove();
-        updateTotalGeneral();
-    }
-
-    function removeServiceHandler() {
-        this.closest('.service-item').remove();
-        updateTotalGeneral();
-    }
-
-    // Calculate Total General
-    function updateTotalGeneral() {
-        let totalGeneral = 0;
-
-        // Sum Product Totals
-        document.querySelectorAll('.total-price').forEach(input => {
-            totalGeneral += parseFloat(input.value) || 0;
-        });
-
-        // Sum Service Totals
-        document.querySelectorAll('.service-price').forEach(input => {
-            totalGeneral += parseFloat(input.value) || 0;
-        });
-
-        document.getElementById('total_general').value = totalGeneral.toFixed(2);
-    }
-
-    // Initialize Event Listeners
-    attachEventListeners();
-});
-</script>
+    </script>
 {% endblock %}
+
+

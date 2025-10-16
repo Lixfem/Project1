@@ -1,0 +1,463 @@
+{% extends 'facture/base.html' %}
+
+{% block content %}
+<style>
+    .container {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 1000px;
+        width: 100%;
+        margin: 20px auto;
+        overflow: hidden;
+    }
+
+    .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+    }
+
+    .header h1 {
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
+
+    .tabs {
+        display: flex;
+        background: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .tab {
+        flex: 1;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        font-weight: 600;
+        color: #6c757d;
+        transition: all 0.3s ease;
+        border-bottom: 3px solid transparent;
+    }
+
+    .tab:hover {
+        background: #e9ecef;
+    }
+
+    .tab.active {
+        color: #667eea;
+        background: white;
+        border-bottom-color: #667eea;
+    }
+
+    .form-container {
+        padding: 40px;
+    }
+
+    .form-section {
+        display: none;
+    }
+
+    .form-section.active {
+        display: block;
+        animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    label .required {
+        color: #dc3545;
+        margin-left: 3px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    textarea,
+    select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    /* .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    } */
+
+    .calculation-display {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 10px;
+        border-left: 4px solid #667eea;
+    }
+
+    .calculation-display strong {
+        color: #667eea;
+        font-size: 18px;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+
+    .info-text {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+
+    .item-selector {
+        margin-bottom: 20px;
+    }
+
+    .item-selector select {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+    }
+
+    @media (max-width: 768px) {
+        /* .row {
+            grid-template-columns: 1fr;
+        } */
+
+        .form-container {
+            padding: 25px;
+        }
+
+        .btn-group {
+            flex-direction: column;
+        }
+
+        .container {
+            margin: 10px;
+        }
+    }
+</style>
+
+<div class="container">
+    <div class="header">
+        <h1>🛠️ Gérer les Articles</h1>
+    </div>
+
+    <div class="tabs">
+        <div class="tab {% if type_element == 'produit' %}active{% endif %}" onclick="switchTab('produit', this)">📦 Produits</div>
+        <div class="tab {% if type_element == 'service' %}active{% endif %}" onclick="switchTab('service', this)">🛠️ Services</div>
+        <div class="tab {% if type_element == 'category' %}active{% endif %}" onclick="switchTab('category', this)">🗂️ Catégories</div>
+    </div>
+
+    <div class="form-container">
+        <!-- Affichage des messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Produit Form -->
+        <div class="form-section {% if type_element == 'produit' %}active{% endif %}" id="produit-form">
+            <h3>Modifier le Produit</h3>
+            {% if not produit_form %}
+                <div class="item-selector">
+                    <form method="GET" action="{% url 'update-article' %}">
+                        <input type="hidden" name="type_element" value="produit">
+                        <label for="produit-select">Sélectionner un produit</label>
+                        <select name="id" id="produit-select" onchange="this.form.submit()">
+                            <option value="">-- Choisir un produit --</option>
+                            {% for produit in produit_list %}
+                                <option value="{{ produit.id }}" {% if produit.id|stringformat:"s" == instance_id|stringformat:"s" %}selected{% endif %}>{{ produit.nom_produit }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+            {% endif %}
+            {% if produit_form %}
+                <form method="POST" action="{% url 'update-article' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="type_element" value="produit">
+                    <input type="hidden" name="id" value="{{ instance_id }}">
+
+                    <div class="form-group">
+                        <label for="{{ produit_form.nom_produit.id_for_label }}">Nom du produit <span class="required">*</span></label>
+                        {{ produit_form.nom_produit }}
+                        {% if produit_form.nom_produit.errors %}
+                            <div class="text-danger">{{ produit_form.nom_produit.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ produit_form.description_produit.id_for_label }}">Description</label>
+                        {{ produit_form.description_produit }}
+                        {% if produit_form.description_produit.errors %}
+                            <div class="text-danger">{{ produit_form.description_produit.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ produit_form.category.id_for_label }}">Catégorie</label>
+                        {{ produit_form.category }}
+                        {% if produit_form.category.errors %}
+                            <div class="text-danger">{{ produit_form.category.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group">
+                            <label for="{{ produit_form.prix_unitaire_produit.id_for_label }}">Prix unitaire (FCFA) <span class="required">*</span></label>
+                            {{ produit_form.prix_unitaire_produit }}
+                            {% if produit_form.prix_unitaire_produit.errors %}
+                                <div class="text-danger">{{ produit_form.prix_unitaire_produit.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ produit_form.quantity.id_for_label }}">Quantité <span class="required">*</span></label>
+                            {{ produit_form.quantity }}
+                            {% if produit_form.quantity.errors %}
+                                <div class="text-danger">{{ produit_form.quantity.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="calculation-display">
+                        <strong>Total: <span id="totalProduit">0.00</span> FCFA</strong>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary">✓ Enregistrer</button>
+                        <a href="{% url 'gerer-article' %}" class="btn btn-secondary">↺ Annuler</a>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+
+        <!-- Service Form -->
+        <div class="form-section {% if type_element == 'service' %}active{% endif %}" id="service-form">
+            <h3>Modifier le Service</h3>
+            {% if not service_form %}
+                <div class="item-selector">
+                    <form method="GET" action="{% url 'update-article' %}">
+                        <input type="hidden" name="type_element" value="service">
+                        <label for="service-select">Sélectionner un service</label>
+                        <select name="id" id="service-select" onchange="this.form.submit()">
+                            <option value="">-- Choisir un service --</option>
+                            {% for service in service_list %}
+                                <option value="{{ service.id }}" {% if service.id|stringformat:"s" == instance_id|stringformat:"s" %}selected{% endif %}>{{ service.nom_service }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+            {% endif %}
+            {% if service_form %}
+                <form method="POST" action="{% url 'update-article' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="type_element" value="service">
+                    <input type="hidden" name="id" value="{{ instance_id }}">
+
+                    <div class="form-group">
+                        <label for="{{ service_form.nom_service.id_for_label }}">Nom du service <span class="required">*</span></label>
+                        {{ service_form.nom_service }}
+                        {% if service_form.nom_service.errors %}
+                            <div class="text-danger">{{ service_form.nom_service.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ service_form.description_service.id_for_label }}">Description</label>
+                        {{ service_form.description_service }}
+                        {% if service_form.description_service.errors %}
+                            <div class="text-danger">{{ service_form.description_service.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group">
+                            <label for="{{ service_form.montant_du_service.id_for_label }}">Montant (FCFA) <span class="required">*</span></label>
+                            {{ service_form.montant_du_service }}
+                            {% if service_form.montant_du_service.errors %}
+                                <div class="text-danger">{{ service_form.montant_du_service.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ service_form.date_prestation_service.id_for_label }}">Date de prestation</label>
+                            {{ service_form.date_prestation_service }}
+                            <p class="info-text">Laissez vide pour la date du jour</p>
+                            {% if service_form.date_prestation_service.errors %}
+                                <div class="text-danger">{{ service_form.date_prestation_service.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary">✓ Enregistrer</button>
+                        <a href="{% url 'gerer-article' %}" class="btn btn-secondary">↺ Annuler</a>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+
+        <!-- Category Form -->
+        <div class="form-section {% if type_element == 'category' %}active{% endif %}" id="category-form">
+            <h3>Modifier la Catégorie</h3>
+            {% if not category_form %}
+                <div class="item-selector">
+                    <form method="GET" action="{% url 'update-article' %}">
+                        <input type="hidden" name="type_element" value="category">
+                        <label for="category-select">Sélectionner une catégorie</label>
+                        <select name="id" id="category-select" onchange="this.form.submit()">
+                            <option value="">-- Choisir une catégorie --</option>
+                            {% for category in category_list %}
+                                <option value="{{ category.id }}" {% if category.id|stringformat:"s" == instance_id|stringformat:"s" %}selected{% endif %}>{{ category.nom }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+            {% endif %}
+            {% if category_form %}
+                <form method="POST" action="{% url 'update-article' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="type_element" value="category">
+                    <input type="hidden" name="id" value="{{ instance_id }}">
+
+                    <div class="form-group">
+                        <label for="{{ category_form.nom.id_for_label }}">Nom de la catégorie <span class="required">*</span></label>
+                        {{ category_form.nom }}
+                        {% if category_form.nom.errors %}
+                            <div class="text-danger">{{ category_form.nom.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ category_form.description.id_for_label }}">Description</label>
+                        {{ category_form.description }}
+                        {% if category_form.description.errors %}
+                            <div class="text-danger">{{ category_form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary">✓ Enregistrer</button>
+                        <a href="{% url 'gerer-article' %}" class="btn btn-secondary">↺ Annuler</a>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+
+<script>
+function switchTab(type, element) {
+    // Update tab and section visibility
+    const tabs = document.querySelectorAll('.tab');
+    const sections = document.querySelectorAll('.form-section');
+    
+    tabs.forEach(tab => tab.classList.remove('active'));
+    sections.forEach(section => section.classList.remove('active'));
+    
+    element.classList.add('active');
+    const section = document.getElementById(type + '-form');
+    if (section) {
+        section.classList.add('active');
+    }
+    
+    // Update URL to preserve type_element
+    const url = new URL(window.location);
+    url.searchParams.delete('id');
+    url.searchParams.set('type_element', type);
+    window.history.pushState({}, '', url);
+    
+    if (type === 'produit') {
+        calculerTotal();
+    }
+}
+
+function calculerTotal() {
+    const produitSection = document.getElementById('produit-form');
+    if (produitSection && produitSection.classList.contains('active')) {
+        const prix = parseFloat(document.getElementById('id_prix_unitaire_produit')?.value) || 0;
+        const qty = parseInt(document.getElementById('id_quantity')?.value) || 0;
+        const total = (prix * qty).toFixed(2);
+        const totalElement = document.getElementById('totalProduit');
+        if (totalElement) {
+            totalElement.textContent = total;
+        }
+    }
+}
+
+// Attach event listeners for real-time calculation
+const produitSection = document.getElementById('produit-form');
+if (produitSection) {
+    const prixInput = document.getElementById('id_prix_unitaire_produit');
+    const qtyInput = document.getElementById('id_quantity');
+    if (prixInput && qtyInput) {
+        prixInput.addEventListener('input', calculerTotal);
+        qtyInput.addEventListener('input', calculerTotal);
+        calculerTotal();
+    }
+}
+
+// Ensure at least one tab is active
+document.addEventListener('DOMContentLoaded', () => {
+    const activeTab = document.querySelector('.tab.active');
+    if (!activeTab) {
+        const firstTab = document.querySelector('.tab');
+        const firstSection = document.querySelector('.form-section');
+        if (firstTab && firstSection) {
+            firstTab.classList.add('active');
+            firstSection.classList.add('active');
+        }
+    }
+});
+</script>
+
+{% endblock %}

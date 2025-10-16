@@ -1,208 +1,318 @@
 from django import forms
-from .models import Facturation, Produit, Service, Client
-from django.contrib.auth.models import User 
+from .models import Facturation, Produit, Service, Client, Category, Devis
 from datetime import datetime
 from decimal import Decimal
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.forms import inlineformset_factory
+
 
 class ClientForm(forms.ModelForm):
     class Meta:
         model = Client
-        fields = ['nomClient', 'emailClient', 'telephoneClient', 'sexClient', 'ageClient', 'adresseClient', 'villeClient']
+        fields = ['client_type', 'nom', 'email', 'telephone', 'adresse', 'ville', 
+                  'sexe', 'company_id_number', 'company_iban', 'company_bic']
         widgets = {
-            'nomClient': forms.TextInput(attrs={
+            'client_type': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'nom': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Nom et prénom du client',
                 'required': True
             }),
-            'emailClient': forms.EmailInput(attrs={
+            'email': forms.EmailInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Email du client',
                 'required': True
             }),
-            'telephoneClient': forms.TextInput(attrs={
+            'telephone': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Numéro de téléphone du client'
             }),
-            'sexClient': forms.Select(attrs={
+            'sexe': forms.Select(attrs={
                 'class': 'form-control'
-            }, choices=[
-                ('', 'Choisir une option...'),
-                ('Masculin', 'Masculin'),
-                ('Féminin', 'Féminin'),
-            ]),
-            'ageClient': forms.Select(attrs={
-                'class': 'form-control'
-            }, choices=[
-                ('', 'Choisir la tranche d\'âge...'),
-                ('0-15', '0-15 ans'),
-                ('15-25', '15-25 ans'),
-                ('25-45', '25-45 ans'),
-                ('45+', '45 ans et plus')
-            ]),
-            'adresseClient': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Adresse du client'
             }),
-            'villeClient': forms.TextInput(attrs={
+            'adresse': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Adresse du client',
+                'rows': 3
+            }),
+            'ville': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Ville du client'
+            }),
+            'company_id_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': "Numéro d'identification de l'entreprise"
+            }),
+            'company_iban': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': "IBAN de l'entreprise"
+            }),
+            'company_bic': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': "BIC de l'entreprise"
             })
         }
-        
+    
     def clean_email(self):
-        email = self.cleaned_data.get('emailClient')
-        if email and Client.objects.filter(email=email).exists():
-            raise forms.ValidationError("Un client avec cet email existe déjà.")
+        email = self.cleaned_data.get('email')
+        # Exclure l'instance actuelle lors de la modification
+        if self.instance and self.instance.pk:
+            if Client.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
+                raise forms.ValidationError("Un client avec cet email existe déjà.")
+        else:
+            if Client.objects.filter(email=email).exists():
+                raise forms.ValidationError("Un client avec cet email existe déjà.")
         return email
-
+    
+   
 
 
 class FacturationForm(forms.ModelForm):
     class Meta:
         model = Facturation
-        fields = ['clientFacture', 'factureSaveBy', 'totalFacture', 'paid', 'statutFacture', 'numeroFacture', 'commentaireFacture']
+        fields = ['client', 'montant_accompte', 'statut', 'commentaire', 'taux_tva']
         widgets = {
-            'clientFacture': forms.Select(),
-            'factureSaveBy': forms.Select(),
-            'totalFacture': forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
-            'paid': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'statutFacture': forms.Select(choices=Facturation.STATUT_CHOICES_FACTURATION),
-            'numeroFacture': forms.TextInput(attrs={'class': 'form-control'}),
-            'commentaireFacture': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
-        }
-        labels = {
-            'clientFacture': 'Client',
-            'factureSaveBy': 'Créé par',
-            'totalFacture': 'Montant total',
-            'paid': 'Payé',
-            'statutFacture': 'Statut',
-            'numeroFacture': 'Numéro de facture',
-            'commentaireFacture': 'Commentaire'
+            'client': forms.Select(attrs={'class': 'form-control'}),
+            'montant_accompte': forms.NumberInput(attrs={
+                'step': '0.01', 
+                'min': '0',
+                'class': 'form-control'
+            }),
+            'commentaire': forms.Textarea(attrs={
+                'class': 'form-control', 
+                'rows': 4,
+                'placeholder': 'Commentaire sur la facture (optionnel)'
+            }),
+            'taux_tva': forms.NumberInput(attrs={
+                'step': '0.01', 
+                'min': '0',
+                'class': 'form-control',
+                'placeholder': 'Taux de TVA (%) - Par défaut: 18%'
+            }),
+            'statut': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.fields['clientFacture'].queryset = Client.objects.all()
-        self.fields['factureSaveBy'].queryset = User.objects.all()
-        self.fields['numeroFacture'].initial=self.generate_numero_facture()
-        self.fields['dateCreationFacture'] = forms.DateTimeField(
-            widget=forms.DateTimeInput(attrs={'readonly': 'readonly', 'class': 'form-control'}),
-            required=False,
-            disabled=True
-        )
-        self.fields['lastUpdateFacture'] = forms.DateTimeField(
-            widget=forms.DateTimeInput(attrs={'readonly': 'readonly', 'class': 'form-control'}),
-            required=False,
-            disabled=True
-        )
-        if self.instance and self.instance.pk:
-            self.fields['dateCreationFacture'].initial = self.instance.dateCreationFacture
-            self.fields['lastUpdateFacture'].initial = self.instance.lastUpdateFacture
+        self.fields['client'].queryset = Client.objects.all()
+        self.fields['commentaire'].required = False
+        self.fields['tva_rate'].required = False
+        self.fields['montant_accompte'].required = False
 
-
-    def generate_numero_facture(self):
-        prefix = "FACT"
-        year = datetime.now().strftime("%Y")
-        last_facture = Facturation.objects.filter(numeroFacture__startswith=f"{prefix}-{year}").order_by('-numeroFacture').first()
-        
-        if last_facture:
-            last_number = int(last_facture.numeroFacture.split('-')[-1])
-            new_number = last_number + 1
-        else:
-            new_number = 1
-        
-        return f"{prefix}-{year}-{new_number:03d}"
-    
-    def clean_numeroFacture(self):
-        numero = self.cleaned_data.get('numeroFacture')
-        if Facturation.objects.filter(numeroFacture=numero).exclude(pk=self.instance.id).exists():
-            raise forms.ValidationError("Ce numéro de facture existe déjà.")
-        return self.generate_numero_facture()
-    
     def save(self, commit=True):
         instance = super().save(commit=False)
-        if not instance.numeroFacture:
-            instance.numeroFacture = self.cleaned_data['numeroFacture']
+        if self.user and not instance.save_by_id:
+            instance.save_by = self.user
         if commit:
             instance.save()
         return instance
 
-    
-   
-    def clean_totalFacture(self):
-        total = self.cleaned_data.get('totalFacture')
-        if total < 0:
-            raise forms.ValidationError("Le montant total ne peut pas être négatif.")
-        return total
-    
-    
+
+class DevisForm(forms.ModelForm):
+    class Meta:
+        model = Devis
+        fields = ['client', 'statut', 'commentaire', 'taux_tva', 'date_validite']
+        widgets = {
+            'client': forms.Select(attrs={'class': 'form-control'}),
+            'commentaire': forms.Textarea(attrs={
+                'class': 'form-control', 
+                'rows': 4,
+                'placeholder': 'Commentaire sur le devis (optionnel)'
+            }),
+            'taux_tva': forms.NumberInput(attrs={
+                'step': '0.01', 
+                'min': '0',
+                'class': 'form-control',
+                'placeholder': 'Taux de TVA (%) - Par défaut: 18%'
+            }),
+            'statut': forms.Select(attrs={'class': 'form-control'}),
+            'date_validite': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'form-control'
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        self.fields['client'].queryset = Client.objects.all()
+        self.fields['commentaire'].required = False
+        self.fields['tva_rate'].required = False
+        self.fields['date_validite'].required = False
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.user and not instance.save_by_id:
+            instance.save_by = self.user
+        if commit:
+            instance.save()
+        return instance
+
+
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = ['nom','description']
+        widgets ={
+            'nom': forms.TextInput(attrs={
+                'class':'form-control',
+                'placeholder': 'Nom de la catégorie'
+            }),
+            'description': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'form-control',
+                'placeholder': 'Description de la categorie'
+            }),
+        }
+    def __init__(self, *args,**kwargs):
+        super().__init__(*args,**kwargs)
+        self.fields['description'].required= False
+
+    def clean_nom(self):
+        nom = self.cleaned_data.get('nom')
+        if self.instance and self.instance.pk:
+            if Category.objects.filter(nom=nom).exclude(pk=self.instance.pk).exists():
+                raise forms.ValidationError(" Cette Catégorie existe déjà")
+        else:
+            if Category.objects.filter(nom=nom).exists():
+                raise forms.ValidationError(" Cette Catégorie existe déjà")
+        return nom
+
+
+
+
+
 class ProduitForm(forms.ModelForm):
     class Meta:
         model = Produit
-        fields = ['nomProduit', 'descriptionProduit', 'quantity', 'prixUnitaireProduit', 'total']
+        fields = ['nom_produit', 'description_produit', 'prix_unitaire_produit', 'category']
         widgets = {
-            'nomProduit': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '40'}),
-            'descriptionProduit': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '400'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
-            'prixUnitaireProduit': forms.NumberInput(attrs={'class': 'form-control', 'min': '0.01', 'step': '0.01'}),
-            'total': forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+            'nom_produit': forms.TextInput(attrs={
+                'class': 'form-control', 
+                'placeholder': 'Nom du produit'
+            }),
+            'description_produit': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'form-control', 
+                'placeholder': 'Description du produit'
+            }),
+            'prix_unitaire_produit': forms.NumberInput(attrs={
+                'class': 'form-control', 
+                'min': '0.01', 
+                'step': '0.01',
+                'placeholder': 'Prix unitaire'
+            }),
+            'category': forms.Select(attrs={'class': 'form-control'}),
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Rendre les champs facultatifs pour les formsets
-        for field_name, field in self.fields.items():
-            field.required = False
-    
-    def clean_quantity(self):
-        """Convertir en entier pour éviter les problèmes de type"""
-        quantity = self.cleaned_data.get('quantity')
-        if quantity is not None:
-            return int(quantity)
-        return quantity
-    
-    def clean_prixUnitaireProduit(self):
-        """Convertir en Decimal pour éviter les problèmes de type"""
-        prix = self.cleaned_data.get('prixUnitaireProduit')
-        if prix is not None:
-            return Decimal(str(prix))
-        return prix
-    
-    def clean_total(self):
-        """Convertir en Decimal pour éviter les problèmes de type"""
-        total = self.cleaned_data.get('total')
-        if total is not None:
-            return Decimal(str(total))
-        return total
+        self.fields['category'].queryset = Category.objects.all()
+        self.fields['category'].required = False 
+        self.fields['quantity'].required = False
+        self.fields['description_produit'].required = False
 
 
-class ServiceForm(forms.ModelForm):
-    datePrestationService = forms.DateField(
-        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-        required=False
-    )
+# Forme specialise pour les produits dans les devis/factures
+# class ProduitInlineForm(ProduitForm):
+#     produit_existant = forms.ModelChoiceField(
+#         queryset= Produit.objects.all(),
+#         required=False,
+#         widget= forms.Select(attrs={
+#             'class': 'form-control produit-existant-select',
+#         }),
+#         label="Sélectionner un produit existant."
+#     )
+
+#     class Meta(ProduitForm.Meta):
+#         fields =['produit_existant','nom_produit','description_produit','quantity','prix_unitaire_produit','category']
     
-    class Meta:
-        model = Service
-        fields = ['nomService', 'descriptionService', 'montantDuService']
-        widgets = {
-            'nomService': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '60'}),
-            'descriptionService': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '400'}),
-            'montantDuService': forms.NumberInput(attrs={'class': 'form-control', 'min': '0.01', 'step': '0.01'}),
-        }
+#     def clean(self):
+#         cleaned_data = super().clean()
+#         produit_existant = cleaned_data.get('produit_existant')
+#         nom_produit = cleaned_data.get('nom_produit')
+
+#         if not produit_existant and not nom_produit:
+#             raise forms.ValidationError("Vous devez Sélectionner un produit existant ou entrer un nouveau produit ")
+
+
+
+# Formsets pour Facturation
+# ProduitFactureFormset = inlineformset_factory(
+#     Facturation,
+#     Produit,
+#     form=ProduitForm,
+#     fk_name='facture_produit',
+#     fields=['nom_produit', 'description_produit', 'quantity', 'prix_unitaire_produit', 'category'],
+#     extra=1,
+#     can_delete=True
+# )
+
+# # Formsets pour Devis
+# ProduitDevisFormset = inlineformset_factory(
+#     Devis,
+#     Produit,
+#     form=ProduitForm,
+#     fk_name='devis_produit',
+#     fields=['nom_produit', 'description_produit', 'quantity', 'prix_unitaire_produit', 'category'],
+#     extra=1,
+#     can_delete=True
+# )
+
+
+# class ServiceForm(forms.ModelForm):
+#     class Meta:
+#         model = Service
+#         fields = ['nom_service', 'description_service', 'montant_du_service', 'date_prestation_service']
+#         widgets = {
+#             'nom_service': forms.TextInput(attrs={
+#                 'class': 'form-control',
+#                 'placeholder': 'Nom du service'
+#             }),
+#             'description_service': forms.Textarea(attrs={
+#                 'rows': 3,
+#                 'class': 'form-control',
+#                 'placeholder': 'Description du service'
+#             }),
+#             'montant_du_service': forms.NumberInput(attrs={
+#                 'class': 'form-control', 
+#                 'min': '0.01', 
+#                 'step': '0.01',
+#                 'placeholder': 'Montant du service'
+#             }),
+#             'date_prestation_service': forms.DateInput(attrs={
+#                 'type': 'date', 
+#                 'class': 'form-control'
+#             }),
+#         }
     
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Rendre les champs facultatifs pour les formsets
-        for field_name, field in self.fields.items():
-            field.required = False
-        
-        if self.instance and self.instance.pk:
-            self.fields['datePrestationService'].initial = self.instance.datePrestationService
-    
-    def clean_montantDuService(self):
-        """Convertir en Decimal pour éviter les problèmes de type"""
-        montant = self.cleaned_data.get('montantDuService')
-        if montant is not None:
-            return Decimal(str(montant))
-        return montant
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.fields['description_service'].required = False
+#         self.fields['date_prestation_service'].required = False
+
+
+# # Formsets pour Services
+# ServiceFactureFormset = inlineformset_factory(
+#     Facturation,
+#     Service,
+#     form=ServiceForm,
+#     fk_name='facture_service',
+#     fields=['nom_service', 'description_service', 'montant_du_service', 'date_prestation_service'],
+#     extra=1,
+#     can_delete=True    
+# )
+
+# ServiceDevisFormset = inlineformset_factory(
+#     Devis,
+#     Service,
+#     form=ServiceForm,
+#     fk_name='devis_service',
+#     fields=['nom_service', 'description_service', 'montant_du_service', 'date_prestation_service'],
+#     extra=1,
+#     can_delete=True    
+# )
