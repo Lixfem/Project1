@@ -15,3 +15,11 @@ def divide(value, arg):
         return float(value) / float(arg)
     except  (ValueError, TypeError):
         return ''
+    
+@register.filter
+def sub(value, arg):
+    """Soustraction : {{ value|sub:arg }}"""
+    try:
+        return float(value) - float(arg)
+    except (ValueError, TypeError):
+        return value

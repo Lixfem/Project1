@@ -23,7 +23,7 @@
                     <th scope="col">Date de Création</th>
                     <th scope="col">Dernière Mise à Jour</th>
                     <th scope="col">Nom du client</th>
-                    <th scope="col">Total</th>
+                    <th scope="col">Total TTC</th>
                     <th scope="col">Enregistré par</th>
                     <th scope="col">Statut</th>
                     <th scope="col">Actions</th>
@@ -31,21 +31,20 @@
             </thead>
             <tbody>
                 {% for facture in factures %}
-                    {% if facture.statutFacture == 2 %}
 
                     <tr>
-                        <td scope="row">{{ facture.numeroFacture }}</td>
-                        <td>{{ facture.dateCreationFacturation|date:"d/m/Y" }}</td>
-                        <td>{{ facture.lastUpdateFacture|date:"d/m/Y H:i" }}</td>
-                        <td>{{ facture.clientFacture.nomClient }}</td>
-                        <td>{{ facture.totalFacture }}</td>
-                        <td>{{ facture.factureSaveBy.username }}</td>
+                        <td scope="row">{{ facture.numero }}</td>
+                        <td>{{ facture.date_creation|date:"d/m/Y" }}</td>
+                        <td>{{ facture.last_update|date:"d/m/Y H:i" }}</td>
+                        <td>{{ facture.client.nom }}</td>
+                        <td>{{ facture.total_ttc }}</td>
+                        <td>{{ facture.save_by.username }}</td>
                         <td>
-                                <span class="badge bg-warning">{{ facture.get_statutFacture_display }}</span>
+                                <span class="badge bg-warning">{{ facture.get_statut_display }}</span>
                         </td>
                         <td class="text-center">
                             <div class="btn-group" role="group">
-                                <a href="{% url 'details-facture' facture.id %}" class="btn btn-sm btn-outline-info" title="Voir détails">                                            
+                                <a href="{% url 'document-detail' document_type='facture' document_id=facture.id %}" class="btn btn-sm btn-outline-info" title="Voir détails">                                            
                                     <i class="fas fa-eye"></i>
                                 </a>
                                 <a href="{% url 'modifier-facture' facture_id=facture.id %}" class="btn btn-sm btn-outline-warning" title="Modofier">
@@ -63,14 +62,13 @@
                                  <button type="button" class="btn btn-danger btn-sm btn-devis-sup"
                                     data-bs-toggle="modal" data-bs-target="#supprimer" 
                                     data-id="{{ facture.id }}"
-                                    data-client="{{ facture.clientFacture.nomClient }}" title="Supprimer">
+                                    data-client="{{ facture.client.nom }}" title="Supprimer">
                                     <i class="fas fa-trash"></i>
 
                                 </button>
                             </div>
                         </td>
                     </tr>
-                {% endif %}
                 {% empty %}
                     <tr>
                         <td colspan="8" class="text-center">

@@ -7,7 +7,7 @@ class ClientAdmin(admin.ModelAdmin):
     
 
 class FacturationAdmin(admin.ModelAdmin):
-    list_display = ('date_creation','statut','numero','total_ttc','last_update','commentaire')     
+    list_display = ('client','devis_origine','solde_du','montant_accompte','date_creation','statut','numero','last_update','commentaire','net_a_payer','taux_tva','total_tva','total_net_ht','total_ttc')     
       
 
 class DevisAdmin(admin.ModelAdmin):

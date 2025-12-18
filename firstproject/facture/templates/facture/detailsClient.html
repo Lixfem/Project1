@@ -1,8 +1,9 @@
 {% extends 'facture/base.html' %}
+{% load humanize %}
 
 {% block content %}
 <div class="container-fluid mt-4">
-    <!-- Breadcrumb et navigation -->
+    <!-- BREADCRUMB -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
@@ -16,13 +17,13 @@
         </ol>
     </nav>
 
-    <!-- En-tête avec avatar et informations principales -->
+    <!-- EN-TÊTE AVATAR -->
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="bg-gradient-primary text-white p-4 rounded-lg shadow">
                 <div class="row align-items-center">
                     <div class="col-md-2 text-center">
-                        <div class="avatar-xl bg-white text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 mb-md-0" style="width: 80px; height: 80px; font-size: 2rem; font-weight: bold;">
+                        <div class="avatar-xl bg-white text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 mb-md-0">
                             {{ client.nom|first|upper }}{{ client.nom|slice:"1:2"|upper }}
                         </div>
                     </div>
@@ -59,9 +60,8 @@
     </div>
 
     <div class="row">
-        <!-- Colonne gauche - Informations personnelles -->
+        <!-- INFO PERSONNELLES -->
         <div class="col-md-6">
-            <!-- Informations de base -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-light">
                     <h5 class="card-title mb-0">
@@ -77,53 +77,32 @@
                         </div>
                         <div class="col-sm-6 mb-3">
                             <label class="form-label text-muted fw-bold">Email</label>
-                            <p class="mb-0">
-                                <a href="mailto:{{ client.email }}" class="text-decoration-none">
-                                    {{ client.email }}
-                                </a>
-                            </p>
+                            <p class="mb-0">{{ client.email }}</p>
                         </div>
                         <div class="col-sm-6 mb-3">
                             <label class="form-label text-muted fw-bold">Téléphone</label>
-                            <p class="mb-0">
-                                {% if client.telephone %}
-                                    <a href="tel:{{ client.telephone }}" class="text-decoration-none">
-                                        {{ client.telephone }}
-                                    </a>
-                                {% else %}
-                                    <span class="text-muted">Non renseigné</span>
-                                {% endif %}
-                            </p>
+                            <p class="mb-0">{{ client.telephone|default:"Non renseigné" }}</p>
                         </div>
+                        <!-- ✅ BUG FIXÉ : 'M'/'F' au lieu de 'Masculin' -->
                         <div class="col-sm-6 mb-3">
                             <label class="form-label text-muted fw-bold">Sexe</label>
                             <p class="mb-0">
-                                {% if client.sexe == 'Masculin' %}
-                                    <span class="badge bg-info">
-                                        <i class="fas fa-mars me-1"></i>Masculin
-                                    </span>
-                                {% elif client.sexe == 'Feminin' %}
-                                    <span class="badge bg-warning">
-                                        <i class="fas fa-venus me-1"></i>Féminin
-                                    </span>
+                                {% if client.sexe == 'M' %}
+                                    <span class="badge bg-info"><i class="fas fa-mars me-1"></i>Masculin</span>
+                                {% elif client.sexe == 'F' %}
+                                    <span class="badge bg-warning"><i class="fas fa-venus me-1"></i>Féminin</span>
                                 {% else %}
                                     <span class="text-muted">Non défini</span>
                                 {% endif %}
                             </p>
                         </div>
                         <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted fw-bold">Type de client</label>
+                            <label class="form-label text-muted fw-bold">Type</label>
                             <p class="mb-0">
                                 {% if client.client_type == 'INDIVIDU' %}
-                                    <span class="badge bg-light text-dark">
-                                        <i class="fas fa-user me-1"></i>Individu
-                                    </span>
+                                    <span class="badge bg-light text-dark"><i class="fas fa-user me-1"></i>Individu</span>
                                 {% elif client.client_type == 'ENTREPRISE' %}
-                                    <span class="badge bg-primary">
-                                        <i class="fas fa-building me-1"></i>Entreprise
-                                    </span>
-                                {% else %}
-                                    <span class="text-muted">Non défini</span>
+                                    <span class="badge bg-primary"><i class="fas fa-building me-1"></i>Entreprise</span>
                                 {% endif %}
                             </p>
                         </div>
@@ -131,172 +110,83 @@
                 </div>
             </div>
 
-            <!-- Adresse -->
+            <!-- ADRESSE -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                        Adresse
-                    </h5>
+                    <h5 class="card-title mb-0"><i class="fas fa-map-marker-alt text-primary me-2"></i>Adresse</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-sm-12 mb-3">
-                            <label class="form-label text-muted fw-bold">Adresse complète</label>
-                            <p class="mb-0">
-                                {% if client.adresse %}
-                                    {{ client.adresse }}
-                                {% else %}
-                                    <span class="text-muted">Non renseignée</span>
-                                {% endif %}
-                            </p>
-                        </div>
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted fw-bold">Ville</label>
-                            <p class="mb-0">
-                                {% if client.ville %}
-                                    <i class="fas fa-city text-muted me-2"></i>{{ client.ville|title }}
-                                {% else %}
-                                    <span class="text-muted">Non renseignée</span>
-                                {% endif %}
-                            </p>
-                        </div>
-                    </div>
+                    <p class="mb-1"><strong>{{ client.adresse|default:"Non renseignée" }}</strong></p>
+                    <p class="mb-0"><i class="fas fa-city me-2"></i>{{ client.ville|title|default:"Non renseignée" }}</p>
                 </div>
             </div>
 
-            <!-- Informations entreprise -->
+            <!-- ENTREPRISE (SEULEMENT SI ENTREPRISE) -->
             {% if client.client_type == 'ENTREPRISE' %}
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-building text-primary me-2"></i>
-                        Informations entreprise
-                    </h5>
+                    <h5 class="card-title mb-0"><i class="fas fa-building text-primary me-2"></i>Entreprise</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-sm-12 mb-3">
-                            <label class="form-label text-muted fw-bold">Numéro d'identification</label>
-                            <p class="mb-0">
-                                {% if client.company_id_number %}
-                                    <code>{{ client.company_id_number }}</code>
-                                {% else %}
-                                    <span class="text-muted">Non renseigné</span>
-                                {% endif %}
-                            </p>
-                        </div>
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted fw-bold">IBAN</label>
-                            <p class="mb-0">
-                                {% if client.company_iban %}
-                                    <code>{{ client.company_iban }}</code>
-                                {% else %}
-                                    <span class="text-muted">Non renseigné</span>
-                                {% endif %}
-                            </p>
-                        </div>
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted fw-bold">BIC</label>
-                            <p class="mb-0">
-                                {% if client.company_bic %}
-                                    <code>{{ client.company_bic }}</code>
-                                {% else %}
-                                    <span class="text-muted">Non renseigné</span>
-                                {% endif %}
-                            </p>
-                        </div>
-                    </div>
+                    <p><code>ID: {{ client.company_id_number|default:"N/A" }}</code></p>
+                    <p><code>IBAN: {{ client.company_iban|default:"N/A" }}</code></p>
+                    <p><code>BIC: {{ client.company_bic|default:"N/A" }}</code></p>
                 </div>
             </div>
             {% endif %}
         </div>
 
-        <!-- Colonne droite - Informations système et actions -->
+        <!-- STATS + SYSTÈME -->
         <div class="col-md-6">
-            <!-- Statistiques du client -->
+            <!-- ✅ BUG FIXÉ : Variables correctes -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-chart-line text-primary me-2"></i>
-                        Statistiques
-                    </h5>
+                    <h5 class="card-title mb-0"><i class="fas fa-chart-line text-primary me-2"></i>Statistiques</h5>
                 </div>
                 <div class="card-body">
                     <div class="row text-center">
                         <div class="col-4 border-end">
-                            <div class="p-3">
-                                <h3 class="text-primary mb-1">{{ factures.count }}</h3>
-                                <p class="text-muted mb-0 small">Facture(s)</p>
-                            </div>
+                            <h3 class="text-primary mb-1">{{ total_factures }}</h3>
+                            <p class="text-muted mb-0 small">Factures</p>
                         </div>
                         <div class="col-4 border-end">
-                            <div class="p-3">
-                                <h3 class="text-info mb-1">{{ devis_lists.count }}</h3>
-                                <p class="text-muted mb-0 small">Devis</p>
-                            </div>
+                            <h3 class="text-info mb-1">{{ total_devis }}</h3>
+                            <p class="text-muted mb-0 small">Devis</p>
                         </div>
                         <div class="col-4">
-                            <div class="p-3">
-                                <h3 class="text-success mb-1">
-                                    {% widthratio factures|length|add:devis|length 1 1 %}
-                                </h3>
-                                <p class="text-muted mb-0 small">Total docs</p>
-                            </div>
+                            <h3 class="text-success mb-1">{{ total_documents }}</h3>
+                            <p class="text-muted mb-0 small">Total docs</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Informations système -->
+            <!-- INFOS SYSTÈME -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-cog text-primary me-2"></i>
-                        Informations système
-                    </h5>
+                    <h5 class="card-title mb-0"><i class="fas fa-cog text-primary me-2"></i>Système</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-sm-12 mb-3">
-                            <label class="form-label text-muted fw-bold">Date de création</label>
-                            <p class="mb-0">
-                                <i class="fas fa-calendar-alt text-muted me-2"></i>
-                                {{ client.date_creation|date:"d/m/Y à H:i" }}
-                            </p>
-                        </div>
-                        <div class="col-sm-12 mb-3">
-                            <label class="form-label text-muted fw-bold">Créé par</label>
-                            <p class="mb-0">
-                                <i class="fas fa-user text-muted me-2"></i>
-                                {{ client.save_by.get_full_name|default:client.save_by.username }}
-                            </p>
-                        </div>
-                    </div>
+                    <p><i class="fas fa-calendar-alt me-2"></i>{{ client.date_creation|date:"d/m/Y H:i" }}</p>
+                    <p><i class="fas fa-user me-2"></i>{{ client.save_by.get_full_name|default:client.save_by.username }}</p>
                 </div>
             </div>
 
-            <!-- Actions rapides -->
+            <!-- ACTIONS RAPIDES ✅ AVEC CLIENT PRÉ-SÉLECTIONNÉ -->
             <div class="card shadow-sm">
                 <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-bolt text-primary me-2"></i>
-                        Actions rapides
-                    </h5>
+                    <h5 class="card-title mb-0"><i class="fas fa-bolt text-primary me-2"></i>Actions</h5>
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{% url 'create-facture' %}" class="btn btn-primary">
-                            <i class="fas fa-file-invoice me-2"></i>
-                            Nouvelle facture pour ce client
+                        <a href="{% url 'liste-facture' %}?client={{ client.id }}" class="btn btn-primary">
+                            <i class="fas fa-file-invoice me-2"></i>Gérer les factures
                         </a>
-                        <a href="{% url 'create-devis' %}" class="btn btn-info">
-                            <i class="fas fa-file-alt me-2"></i>
-                            Nouveau devis pour ce client
+                        <a href="{% url 'create-devis' %}?client={{ client.id }}" class="btn btn-info">
+                            <i class="fas fa-file-alt me-2"></i>Nouveau devis
                         </a>
                         <a href="mailto:{{ client.email }}" class="btn btn-success">
-                            <i class="fas fa-envelope me-2"></i>
-                            Envoyer un email
+                            <i class="fas fa-envelope me-2"></i>Envoyer email
                         </a>
                     </div>
                 </div>
@@ -304,46 +194,37 @@
         </div>
     </div>
 
-    <!-- Historique des factures -->
+    <!-- FACTURES -->
     {% if factures %}
     <div class="row mt-4">
         <div class="col-12">
             <div class="card shadow-sm">
                 <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-file-invoice text-primary me-2"></i>
-                        Factures ({{ factures.count }})
-                    </h5>
+                    <h5 class="card-title mb-0"><i class="fas fa-file-invoice text-primary me-2"></i>Factures ({{ total_factures }})</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Numéro</th>
-                                    <th>Date</th>
-                                    <th>Montant TTC</th>
-                                    <th>Statut</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>#Numéro</th><th>Date</th><th>Montant</th><th>Statut</th><th></th></tr></thead>
                             <tbody>
                                 {% for facture in factures %}
                                 <tr>
                                     <td><strong>{{ facture.numero }}</strong></td>
                                     <td>{{ facture.date_creation|date:"d/m/Y" }}</td>
-                                    <td>{{ facture.total_ttc|floatformat:2 }} FCFA</td>
+                                    <td>{{ facture.total_ttc|floatformat:0|intcomma }} FCFA</td>
                                     <td>
-                                        {% if facture.statut == 1 %}
-                                            <span class="badge bg-success">Payée</span>
-                                        {% elif facture.statut == 2 %}
-                                            <span class="badge bg-warning">En attente</span>
-                                        {% else %}
-                                            <span class="badge bg-danger">Annulée</span>
-                                        {% endif %}
+                                       {% if facture.statut == STATUT_PAYE %}
+                                        <span class="badge bg-success">Payée</span>
+                                    {% elif facture.statut == STATUT_EN_ATTENTE %}
+                                        <span class="badge bg-warning">En attente</span>
+                                    {% elif facture.statut == STATUT_ANNULE %}
+                                        <span class="badge bg-danger">Annulée</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inconnu</span>
+                                    {% endif %}
                                     </td>
                                     <td>
-                                        <a href="{% url 'details-facture' facture_id=facture.id %}" class="btn btn-sm btn-outline-primary">
+                                        <a href="{% url 'document-detail' document_id=facture.id document_type='facture' %}" class="btn btn-sm btn-outline-primary">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                     </td>
@@ -358,48 +239,38 @@
     </div>
     {% endif %}
 
-    <!-- Historique des devis -->
+    <!-- DEVIS -->
     {% if devis_lists %}
     <div class="row mt-4">
         <div class="col-12">
             <div class="card shadow-sm">
                 <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-file-alt text-primary me-2"></i>
-                        Devis ({{ devis_lists.count }})
-                    </h5>
+                    <h5 class="card-title mb-0"><i class="fas fa-file-alt text-primary me-2"></i>Devis ({{ total_devis }})</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Numéro</th>
-                                    <th>Date</th>
-                                    <th>Montant TTC</th>
-                                    <th>Statut</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>#Numéro</th><th>Date</th><th>Montant</th><th>Statut</th><th></th></tr></thead>
                             <tbody>
-                                {% for devis_list in devis_lists %}
+                                {% for devis in devis_lists %}
+                                <!-- ✅ BUG FIXÉ : devis_list → devis -->
                                 <tr>
-                                    <td><strong>{{ d.numero }}</strong></td>
-                                    <td>{{ d.date_creation|date:"d/m/Y" }}</td>
-                                    <td>{{ d.total_ttc|floatformat:2 }} FCFA</td>
+                                    <td><strong>{{ devis.numero }}</strong></td>
+                                    <td>{{ devis.date_creation|date:"d/m/Y" }}</td>
+                                    <td>{{ devis.total_ttc|floatformat:0|intcomma }} FCFA</td>
                                     <td>
-                                        {% if d.statut == 1 %}
+                                        {% if devis.statut == Devis.STATUT_ATTENTE %}
                                             <span class="badge bg-warning">En attente</span>
-                                        {% elif d.statut == 2 %}
+                                        {% elif devis.statut == Devis.STATUT_ACCEPTE %}
                                             <span class="badge bg-success">Accepté</span>
-                                        {% elif d.statut == 3 %}
+                                        {% elif devis.statut == Devis.STATUT_REFUSE %}
                                             <span class="badge bg-danger">Refusé</span>
                                         {% else %}
                                             <span class="badge bg-info">Transformé</span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <a href="{% url 'devis-detail' devis_id=devis_list.id %}" class="btn btn-sm btn-outline-primary">
+                                        <a href="{% url 'document-detail' document_id=devis.id document_type='devis' %}" class="btn btn-sm btn-outline-primary">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                     </td>
@@ -414,32 +285,26 @@
     </div>
     {% endif %}
 
-    <!-- Modal de confirmation de suppression -->
+    <!-- MODAL SUPPRESSION -->
     <div class="modal fade" id="deleteModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        Confirmer la suppression
-                    </h5>
+                    <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Confirmer suppression</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Êtes-vous sûr de vouloir supprimer le client <strong id="clientName"></strong> ?</p>
+                    <p>Supprimer <strong id="clientName"></strong> ?</p>
                     <div class="alert alert-warning">
                         <i class="fas fa-exclamation-triangle me-2"></i>
-                        <strong>Attention :</strong> Cette action supprimera également toutes les factures et devis associés à ce client.
+                        Supprimera AUSSI {{ total_factures }} facture(s) et {{ total_devis }} devis !
                     </div>
-                    <p class="text-danger"><small>Cette action est irréversible.</small></p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                     <form method="post" id="deleteForm" style="display: inline;">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-trash me-2"></i>Supprimer définitivement
-                        </button>
+                        <button type="submit" class="btn btn-danger">Supprimer définitivement</button>
                     </form>
                 </div>
             </div>
@@ -447,57 +312,20 @@
     </div>
 </div>
 
+<!-- JS + CSS (IDENTIQUE) -->
 <script>
-// Fonction de confirmation de suppression
 function confirmDelete(clientId, clientName, deleteUrl) {
     document.getElementById('clientName').textContent = clientName;
     document.getElementById('deleteForm').action = deleteUrl;
-    
-    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-    modal.show();
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }
 </script>
 
 <style>
-.bg-gradient-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.avatar-xl {
-    box-shadow: 0 0 0 4px rgba(255,255,255,0.2);
-}
-
-.card {
-    border: none;
-    transition: transform 0.2s;
-}
-
-.card:hover {
-    transform: translateY(-2px);
-}
-
-.badge {
-    font-size: 0.75rem;
-}
-
-.border-end:last-child {
-    border-right: none !important;
-}
-
-@media (max-width: 768px) {
-    .bg-gradient-primary .row {
-        text-align: center;
-    }
-    
-    .btn-group {
-        flex-direction: column;
-        width: 100%;
-    }
-    
-    .btn-group .btn {
-        border-radius: 0.375rem !important;
-        margin-bottom: 5px;
-    }
-}
+.bg-gradient-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.avatar-xl { box-shadow: 0 0 0 4px rgba(255,255,255,0.2); font-size: 2rem; width: 80px; height: 80px; }
+.card { border: none; transition: transform 0.2s; }
+.card:hover { transform: translateY(-2px); }
+@media (max-width: 768px) { .btn-group { flex-direction: column; width: 100%; } }
 </style>
 {% endblock %}

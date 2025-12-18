@@ -26,7 +26,8 @@ SECRET_KEY = 'django-insecure-+1ofogifol+8f)wvszcnusy*lwd-od6u7p03afu*=cp+68qocq
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+# Par défaut : 3 jours = 259200 secondes
+PASSWORD_RESET_TIMEOUT = 3600  # ← 1 heure seulement
 
 # Application definition
 
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'crispy_forms',
     'crispy_bootstrap5',
+    'django_extensions',
     'register',
     'facture',
 ]
@@ -135,8 +137,9 @@ STATIC_URL = 'static/'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'tfelixsom1@gmail.com'
-EMAIL_HOST_PASSWORD = 'felix1234'
+EMAIL_HOST_PASSWORD = 'Simba1234'
 DEFAULT_FROM_EMAIL = 'tfelixsom1@gmail.com'
 
 
@@ -155,3 +158,5 @@ LOGOUT_REDIRECT_URL = 'login'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+# Désactive les URLs de reset password de l'admin Django
+ADMIN_PASSWORD_RESET = False

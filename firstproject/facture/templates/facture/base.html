@@ -7,9 +7,8 @@
     <title>{% block title %}Système de Facturation{% endblock %}</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>  -->
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.min.js"></script> -->
-    <!-- <canvas id="chart" width="500" height="500"></canvas> -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>  
+     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.min.js"></script>  -->
     {% block extra_css %}{% endblock %}
     <style>
     /* Sidebar styling */
@@ -24,7 +23,19 @@
         transform: translateX(-100%);
         transition: transform 0.3s ease;
         z-index: 1000;
+
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: thin;
+        scrollbar-color: #6c757d #343a40; ;
     }
+    .sidebar::-webkit-scrollbar { width: 6px; }
+    .sidebar::-webkit-scrollbar-track { background: #343a40; }
+    .sidebar::-webkit-scrollbar-thumb { 
+        background: #6c757d; 
+        border-radius: 3px; 
+    }
+    .sidebar::-webkit-scrollbar-thumb:hover { background: #adb5bd; }
 
     .sidebar.show {
         transform: translateX(0);
@@ -81,6 +92,9 @@
     }
 </style>
 </head>
+<script>
+    window.addEventListener('load', () => window.scrollTo(0, 0));
+</script>
 <body>
     <!-- Fixed-top navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" style="z-index: 1000;">
@@ -88,7 +102,7 @@
             <button class="btn btn-outline-light me-3 d-lg-none" type="button" id="sidebarToggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <a class="navbar-brand" href="#">
+            <a class="navbar-brand" href="{% url 'home' %}">
                 <i class="fas fa-calculator me-2"></i>FacturePro
             </a>
             <div class="navbar-nav ms-auto">
@@ -131,7 +145,9 @@
             <!-- Sidebar -->
             <nav class="col-lg-2 sidebar p-3" id="sidebar">
                 <div class="nav flex-column">
-                    <!-- <hr class="my-3" style="border-color: rgba(255,255,255,0.2);"> -->
+                     <h6 class="text-uppercase text-white-50 fw-bold px-3 mt-3 mb-2">Accueil</h6>
+                    <a class="nav-link" href="{% url 'home' %}"><i class="fas fa-home"></i> Accueil</a>
+                     <hr class="my-3" style="border-color: rgba(255,255,255,0.2);"> 
                     <h6 class="text-uppercase text-white-50 fw-bold px-3 mt-3 mb-2">Devis</h6>
                     <a class="nav-link" href="{% url 'liste-devis' %}"><i class="fas fa-file-invoice"></i> Tous les devis</a>
                     <a class="nav-link" href="{% url 'create-devis' %}"><i class="fas fa-plus-circle"></i> Nouveau devis</a>
@@ -139,16 +155,23 @@
                     <h6 class="text-uppercase text-white-50 fw-bold px-3 mt-4 mb-2">Factures</h6>
                     <a class="nav-link" href="{% url 'liste-facture' %}"><i class="fas fa-receipt"></i> Toutes les factures</a>
                     <a class="nav-link" href="{% url 'create-facture' %}"><i class="fas fa-plus-circle"></i> Nouvelle facture</a>
-                    <a class="nav-link" href="{% url 'liste-impaye' %}"><i class="fas fa-exclamation-triangle"></i> Factures impayées</a>
+                    <a class="nav-link" href="{% url 'liste-impaye' %}"><i class="fas fa-exclamation-triangle"></i> Factures impayées</a> 
                     <a class="nav-link" href="{% url 'liste-paye' %}"><i class="fas fa-check-circle"></i> Factures payées</a>
                     <h6 class="text-uppercase text-white-50 fw-bold px-3 mt-4 mb-2">Clients</h6>
                     <a class="nav-link" href="{% url 'liste-clients' %}"><i class="fas fa-users"></i> Tous les clients</a>
                     <a class="nav-link" href="{% url 'create-client' %}"><i class="fas fa-user-plus"></i> Nouveau client</a>
-                    <h6 class="text-uppercase text-white-50 fw-bold px-3 mt-4 mb-2">Reporting</h6>
-                    <a class="nav-link" href="{% url 'stat' %}"><i class="fas fa-chart-bar"></i> Statistiques</a>
-                    <a class="nav-link" href="#"><i class="fas fa-download"></i> Exports</a>
-                    <hr class="my-3" style="border-color: rgba(255,255,255,0.2);">
-                    <a class="nav-link" href="#"><i class="fas fa-cog"></i> Configuration</a>
+                    <h6 class="text-uppercase text-white-50 fw-bold px-3 mt-4 mb-2">Articles</h6>
+                    <a class="nav-link" href="{% url 'gerer-article' %}"><i class="fas fa-tag"></i> Tous les articles</a>
+                    <a class="nav-link" href="{% url 'ajouter_element' %}"><i class="fas fa-tag me-2"></i><i class="fas fa-plus"></i> Nouvel article</a>
+                    <!--<a class="nav-link" href="#"><i class="fas fa-download"></i> Exports</a> -->
+                    <h6 class="text-uppercase text-white-50 fw-bold  px-3 mt-3 mb-2">Règlements</h6>
+                    <a class="nav-link" href="{% url 'liste-reglements' %}"><i class="fas fa-credit-card"></i> Tous les règlements</a>
+                    <a class="nav-link" href="{% url 'mode-reglement-list' %}"><i class="fas fa-coins"></i></i> Modes de règlements</a>
+                    <!-- <a class="nav-link" href="#"><i class="fas fa-cog"></i> Configuration</a> -->
+                    <hr class="my-3" style="border-color: rgba(255,255,255,0.2);"> 
+                    <h6 class="text-uppercase text-white-50 fw-bold px-3 mt-4 mb-2">Statistiques</h6>
+                    <a class="nav-link" href="{% url 'stat' %}"><i class="fas fa-chart-line"></i>Statistiques</a>
+
                 </div>
             </nav>
 

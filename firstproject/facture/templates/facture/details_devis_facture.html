@@ -1,12 +1,14 @@
 {% extends 'facture/base.html' %}
 {% load math_filters %}
+{% load humanize %}
 {% block title %}
-    {% if devis %}
-        Devis {{ devis.numeroDevis }}
+    {% if document_type == 'devis' %}
+        Devis {{ document.numero }}
     {% else %}
-        Facture {{ facture.numeroFacture }}
+        Facture {{ document.numero }}
     {% endif %}
 {% endblock %}
+
 {% block content %}
 <style>
     * {
@@ -354,72 +356,54 @@
     }
 </style>
 
+
 <div class="container">
     <!-- Action buttons -->
     <div class="actions no-print">
-        <a href="{% if devis %}{% url 'telecharger_pdf_devis' devis_id=devis.id %}{% else %}{% url 'telecharger_pdf_facture' facture_id=facture.id %}{% endif %}" 
+        <a href="{% url 'telecharger_pdf_document' document_type=document_type document_id=document.id %}" 
            class="btn btn-success">
             📄 Télécharger PDF
         </a>
-        <a href="{% if devis %}{% url 'envoyer_devis_email' devis_id=devis.id %}{% else %}{% url 'envoyer_facture_email' facture.id %}{% endif %}" 
+        <a href="{% url 'envoyer_document_email' document_type=document_type document_id=document.id %}" 
            class="btn btn-info">
             📧 Envoyer Mail
         </a>
-        <a href="{% if devis %}{% url 'liste-devis' %}{% else %}{% url 'liste-facture' %}{% endif %}" 
+        <a href="{% url 'liste-devis'  %}" 
            class="btn btn-secondary">
             ← Retour
         </a>
+       {% comment "Masquer le bouton ajouter règlement" %}
+    {% if document_type == 'facture' and reglements %}
+        <a href="{% url 'ajouter_reglement' document.id %}" class="btn btn-primary">
+            💰 Ajouter Règlement
+        </a>
+    {% endif %}
+{% endcomment %}
     </div>
 
     <!-- En-tête -->
     <div class="header">
-        {% if profile.company_logo %}
-            <img src="{{ profile.company_logo }}" alt="Logo de l'entreprise">
-        {% endif %}
         <h1>
-            {% if devis %}
-                DEVIS
-            {% else %}
-                FACTURE
-            {% endif %}
+            {% if document_type == 'devis' %}DEVIS{% else %}FACTURE{% endif %}
         </h1>
-        <p>
-            {% if devis %}
-                N° {{ devis.numeroDevis }}
-            {% else %}
-                N° {{ facture.numeroFacture }}
-            {% endif %}
-        </p>
+        <p>N° {{ document.numero }}</p>
     </div>
 
     <!-- Informations du document -->
-    <div class="document-info">
-        <div class="info-grid">
-            <!-- Informations entreprise -->
-            <div class="info-section">
+     <div class="document-info">
+         <div class="info-grid"> 
+            <!-- Informations entreprise (depuis profile utilisateur) -->
+             <div class="info-section">
                 <h3>Entreprise</h3>
                 <div class="info-item">
                     <span class="label">Nom :</span>
-                    <span class="value">{{ profile.company_name }}</span>
+                    <span class="value">{{ request.user.profile.company_name }}</span>
                 </div>
                 <div class="info-item">
                     <span class="label">Adresse :</span>
-                    <span class="value">{{ profile.company_address|linebreaksbr }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="label">Téléphone :</span>
-                    <span class="value">{{ profile.company_phone }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="label">Email :</span>
-                    <span class="value">{{ profile.company_email }}</span>
-                </div>
-                {% if profile.company_siret %}
-                    <div class="info-item">
-                        <span class="label">SIRET :</span>
-                        <span class="value">{{ profile.company_siret }}</span>
-                    </div>
-                {% endif %}
+                    <span class="value">{{ request.user.profile.company_address|linebreaksbr }}</span>
+                </div> 
+                <!-- ... autres infos entreprise ... -->
             </div>
 
             <!-- Informations client -->
@@ -427,43 +411,19 @@
                 <h3>Client</h3>
                 <div class="info-item">
                     <span class="label">Nom :</span>
-                    <span class="value">
-                        {% if devis %}
-                            {{ devis.clientDevis.nomClient }}
-                        {% else %}
-                            {{ facture.clientFacture.nomClient }}
-                        {% endif %}
-                    </span>
+                    <span class="value">{{ document.client.nom }}</span>
                 </div>
                 <div class="info-item">
                     <span class="label">Email :</span>
-                    <span class="value">
-                        {% if devis %}
-                            {{ devis.clientDevis.emailClient }}
-                        {% else %}
-                            {{ facture.clientFacture.emailClient }}
-                        {% endif %}
-                    </span>
+                    <span class="value">{{ document.client.email }}</span>
                 </div>
                 <div class="info-item">
                     <span class="label">Téléphone :</span>
-                    <span class="value">
-                        {% if devis %}
-                            {{ devis.clientDevis.telephoneClient }}
-                        {% else %}
-                            {{ facture.clientFacture.telephoneClient }}
-                        {% endif %}
-                    </span>
+                    <span class="value">{{ document.client.telephone }}</span>
                 </div>
                 <div class="info-item">
                     <span class="label">Adresse :</span>
-                    <span class="value">
-                        {% if devis %}
-                            {{ devis.clientDevis.adresseClient }}<br>{{ devis.clientDevis.villeClient }}
-                        {% else %}
-                            {{ facture.clientFacture.adresseClient }}<br>{{ facture.clientFacture.villeClient }}
-                        {% endif %}
-                    </span>
+                    <span class="value">{{ document.client.adresse }}<br>{{ document.client.ville }}</span>
                 </div>
             </div>
         </div>
@@ -474,42 +434,27 @@
                 <h3>Informations du document</h3>
                 <div class="info-item">
                     <span class="label">Date :</span>
-                    <span class="value">
-                        {% if devis %}
-                            {{ devis.dateCreationDevis|date:"d/m/Y" }}
-                        {% else %}
-                            {{ facture.dateCreationFacturation|date:"d/m/Y" }}
-                        {% endif %}
-                    </span>
+                    <span class="value">{{ document.date_creation|date:"d/m/Y" }}</span>
                 </div>
                 <div class="info-item">
                     <span class="label">Statut :</span>
                     <span class="value">
-                        {% if devis %}
-                            {% if devis.statutDevis == 1 %}
-                                <span class="status attente">En Attente</span>
-                            {% elif devis.statutDevis == 2 %}
-                                <span class="status accepte">Accepté</span>
-                            {% elif devis.statutDevis == 3 %}
-                                <span class="status refuse">Refusé</span>
-                            {% elif devis.statutDevis == 4 %}
-                                <span class="status transforme">Transformé en facture</span>
-                            {% endif %}
+                        {% if document_type == 'devis' %}
+                            {% if document.statut == 1 %}<span class="status attente">En Attente</span>
+                            {% elif document.statut == 2 %}<span class="status accepte">Accepté</span>
+                            {% elif document.statut == 3 %}<span class="status refuse">Refusé</span>
+                            {% elif document.statut == 4 %}<span class="status transforme">Transformé</span>{% endif %}
                         {% else %}
-                            {% if facture.statutFacture == 1 %}
-                                <span class="status paye">Payé</span>
-                            {% elif facture.statutFacture == 2 %}
-                                <span class="status attente">En Attente</span>
-                            {% elif facture.statutFacture == 3 %}
-                                <span class="status annule">Annulée</span>
-                            {% endif %}
+                            {% if document.statut == 1 %}<span class="status paye">Payé</span>
+                            {% elif document.statut == 2 %}<span class="status attente">En Attente</span>
+                            {% elif document.statut == 3 %}<span class="status annule">Annulée</span>{% endif %}
                         {% endif %}
                     </span>
                 </div>
-                {% if facture and facture.devis_origine %}
+                {% if document_type == 'facture' and document.devis_origine %}
                     <div class="info-item">
                         <span class="label">Devis origine :</span>
-                        <span class="value">{{ facture.devis_origine.numeroDevis }}</span>
+                        <span class="value">{{ document.devis_origine.numero }}</span>
                     </div>
                 {% endif %}
             </div>
@@ -518,23 +463,11 @@
                 <h3>Créé par</h3>
                 <div class="info-item">
                     <span class="label">Utilisateur :</span>
-                    <span class="value">
-                        {% if devis %}
-                            {{ devis.save_by.get_full_name|default:devis.save_by.username }}
-                        {% else %}
-                            {{ facture.save_by.get_full_name|default:facture.save_by.username }}
-                        {% endif %}
-                    </span>
+                    <span class="value">{{ document.save_by.get_full_name|default:document.save_by.username }}</span>
                 </div>
                 <div class="info-item">
                     <span class="label">Dernière MAJ :</span>
-                    <span class="value">
-                        {% if devis %}
-                            {{ devis.lastUpdateDevis|date:"d/m/Y H:i" }}
-                        {% else %}
-                            {{ facture.lastUpdateFacture|date:"d/m/Y H:i" }}
-                        {% endif %}
-                    </span>
+                    <span class="value">{{ document.last_update|date:"d/m/Y H:i" }}</span>
                 </div>
             </div>
         </div>
@@ -542,209 +475,173 @@
 
     <!-- Contenu principal -->
     <div class="content">
-        <!-- Section Produits -->
-        {% if devis %}
-            {% if devis.produit_set.all %}
-                <div class="section">
-                    <h2 class="section-title">Produits</h2>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Produit</th>
-                                <th>Description</th>
-                                <th class="text-center">Quantité</th>
-                                <th class="text-right">Prix unitaire</th>
-                                <th class="text-right">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for produit in devis.produit_set.all %}
-                                <tr>
-                                    <td><strong>{{ produit.nomProduit }}</strong></td>
-                                    <td>{{ produit.descriptionProduit }}</td>
-                                    <td class="text-center">{{ produit.quantity }}</td>
-                                    <td class="text-right">{{ produit.prixUnitaireProduit|floatformat:2 }} CFA</td>
-                                    <td class="text-right"><strong>{{ produit.get_total|floatformat:2 }} CFA</strong></td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% endif %}
-
-            {% if devis.service_set.all %}
-                <div class="section">
-                    <h2 class="section-title">Services</h2>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Service</th>
-                                <th>Description</th>
-                                <th class="text-center">Date de prestation</th>
-                                <th class="text-right">Montant</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for service in devis.service_set.all %}
-                                <tr>
-                                    <td><strong>{{ service.nomService }}</strong></td>
-                                    <td>{{ service.descriptionService }}</td>
-                                    <td class="text-center">{{ service.datePrestationService|date:"d/m/Y"|default:"Non définie" }}</td>
-                                    <td class="text-right"><strong>{{ service.montantDuService|floatformat:2 }} CFA</strong></td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% endif %}
-        {% else %}
-            {% if facture.produit_set.all %}
-                <div class="section">
-                    <h2 class="section-title">Produits</h2>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Produit</th>
-                                <th>Description</th>
-                                <th class="text-center">Quantité</th>
-                                <th class="text-right">Prix unitaire</th>
-                                <th class="text-right">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for produit in facture.produit_set.all %}
-                                <tr>
-                                    <td><strong>{{ produit.nomProduit }}</strong></td>
-                                    <td>{{ produit.descriptionProduit }}</td>
-                                    <td class="text-center">{{ produit.quantity }}</td>
-                                    <td class="text-right">{{ produit.prixUnitaireProduit|floatformat:2 }} CFA</td>
-                                    <td class="text-right"><strong>{{ produit.get_total|floatformat:2 }} CFA</strong></td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                    <p>Aucun produit associé à cette facture.</p>
-                {% endif %}
-
-            {% if facture.service_set.all %}
-                <div class="section">
-                    <h2 class="section-title">Services</h2>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Service</th>
-                                <th>Description</th>
-                                <th class="text-center">Date de prestation</th>
-                                <th class="text-right">Montant</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for service in facture.service_set.all %}
-                                <tr>
-                                    <td><strong>{{ service.nomService }}</strong></td>
-                                    <td>{{ service.descriptionService }}</td>
-                                    <td class="text-center">{{ service.datePrestationService|date:"d/m/Y"|default:"Non définie" }}</td>
-                                    <td class="text-right"><strong>{{ service.montantDuService|floatformat:2 }} CFA</strong></td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% endif %}
+        <!-- Produits -->
+        {% if produit_devis %}
+        <div class="section">
+            <h2 class="section-title">Produits</h2>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Produit</th><th>Description</th><th class="text-center">Qté</th>
+                        <th class="text-right">Prix Unitaire</th><th class="text-right">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pd  in produit_devis %}
+                    <tr>
+                        <td><strong>{{ pd.produit.nom_produit }}</strong></td>
+                        <td>{{ pd.produit.description_produit }}</td>
+                        <td class="text-center">{{ pd.quantite }}</td>
+                        <td class="text-right">{{ pd.produit.prix_unitaire_produit|floatformat:0 }} CFA</td>
+                        <td class="text-right"><strong>{{ pd.total|floatformat:2 }} CFA</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
         {% endif %}
 
-        <!-- Section Totaux -->
+        <!-- Services -->
+        {% if service_devis %}
+        <div class="section">
+            <h2 class="section-title">Services</h2>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Service</th><th>Description</th><th class="text-center">Date</th>
+                        <th class="text-right">Montant</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sd in service_devis %}
+                    <tr>
+                        <td><strong>{{ sd.service.nom_service }}</strong></td>
+                        <td>{{ sd.service.description_service }}</td>
+                        <td class="text-center">{{ sd.date_prestation_service|date:"d/m/Y"|default:"-" }}</td>
+                        <td class="text-right"><strong>{{ sd.service.montant_du_service|floatformat:2 }} CFA</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Totaux -->
         <div class="total-section">
             <div class="total-row">
-                <span>Sous-total produits :</span>
-                <span>
-                    {% if devis %}
-                        {{ devis.get_total|floatformat:2 }} CFA
-                    {% else %}
-                        {{ facture.get_total|floatformat:2 }} CFA
-                    {% endif %}
-                </span>
+                <span>Total HT :</span>
+                <span>{{ document.total_net_ht|floatformat:2 }} CFA</span>
             </div>
             <div class="total-row">
-                <span>Sous-total services :</span>
-                <span>
-                    {% if devis %}
-                        {{ devis.get_montantDuService|floatformat:2 }} CFA
-                    {% else %}
-                        {{ facture.get_montantService|floatformat:2 }} CFA
-                    {% endif %}
-                </span>
+                <span>TVA ({{ document.taux_tva }}%) :</span>
+                <span>{{ document.total_tva|floatformat:2 }} CFA</span>
             </div>
-            {% for rate in profile.vat_rates %}
-                <div class="total-row">
-                    <span>TVA ({{ rate }}%) :</span>
-                    <span>
-                        {% if devis %}
-                            {{ devis.get_total|floatformat:2|multiply:rate|divide:100 }} CFA
-                        {% else %}
-                            {{ facture.get_total|floatformat:2|multiply:rate|divide:100 }} CFA
-                        {% endif %}
-                    </span>
-                </div>
-            {% endfor %}
             <div class="total-row final">
                 <span>TOTAL TTC :</span>
-                <span>
-                    {% if devis %}
-                        {{ devis.totalDevis|floatformat:2 }} CFA
-                    {% else %}
-                        {{ facture.totalFacture|floatformat:2 }} CFA
-                    {% endif %}
-                </span>
+                <span>{{ document.total_ttc|floatformat:2 }} CFA</span>
             </div>
+            {% if document_type == 'facture' %}
+                <div class="total-row">
+                    <span>Accompte :</span>
+                    <span>-{{ document.montant_accompte|floatformat:2 }} CFA</span>
+                </div>
+                <div class="total-row final">
+                    <span>SOLDE À PAYER :</span>
+                    <span>{{ document.net_a_payer|floatformat:2 }} CFA</span>
+                </div>
+            {% endif %}
         </div>
 
-        <!-- Informations de paiement -->
-        {% if profile.company_iban or profile.company_bic or profile.payment_terms %}
-            <div class="payment-info">
-                <h4>Informations de paiement</h4>
-                {% if profile.payment_terms %}
-                    <p><strong>Conditions de paiement :</strong> {{ profile.payment_terms|linebreaksbr }}</p>
-                {% endif %}
-                {% if profile.company_iban %}
-                    <p><strong>IBAN :</strong> {{ profile.company_iban }}</p>
-                {% endif %}
-                {% if profile.company_bic %}
-                    <p><strong>BIC :</strong> {{ profile.company_bic }}</p>
-                {% endif %}
-            </div>
+        <!-- RÈGLEMENTS (SEULEMENT POUR FACTURES) -->
+        {% if document_type == 'facture' and reglements %}
+        <div class="section">
+            <h2 class="section-title">Historique des règlements</h2>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th><th>Mode</th><th class="text-right">Montant</th><th>Solde restant</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reglement in reglements %}
+                    <tr>
+                        <td>{{ reglement.date_reglement|date:"d/m/Y" }}</td>
+                        <td>{{ reglement.mode_reglement.nom }}</td>
+                        <td class="text-right">{{ reglement.montant_reglement|floatformat:2 }} CFA</td>
+                        <td class="text-right">{{ reglement.facture.solde_du|floatformat:2 }} CFA</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- INFORMATIONS PAIEMENT AVEC MODES DE RÈGLEMENT -->
+        {% if request.user.profile.payment_terms or modes_reglement %}
+        <div class="payment-info">
+            <h4>Modalités de paiement</h4>
+            {% if request.user.profile.payment_terms %}
+                <p><strong>Conditions :</strong> {{ request.user.profile.payment_terms|linebreaksbr }}</p>
+            {% endif %}
+            
+            {% if modes_reglement %}
+            <p><strong>Modes de règlement disponibles :</strong></p>
+            <ul>
+                {% for mode in modes_reglement %}
+                <li>{{ mode.nom }} {% if mode.description %}- {{ mode.description }}{% endif %}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            
+            {% if request.user.profile.company_iban %}
+                <p><strong>IBAN :</strong> {{ request.user.profile.company_iban }}</p>
+            {% endif %}
+            {% if request.user.profile.company_bic %}
+                <p><strong>BIC :</strong> {{ request.user.profile.company_bic }}</p>
+            {% endif %}
+        </div>
         {% endif %}
 
         <!-- Commentaires -->
-        {% if devis and devis.commentaireDevis or facture and facture.commentaireFacture %}
-            <div class="section">
-                <div class="comments">
-                    <h4>Commentaires :</h4>
-                    <p>
-                        {% if devis %}
-                            {{ devis.commentaireDevis|linebreaks }}
-                        {% else %}
-                            {{ facture.commentaireFacture|linebreaks }}
-                        {% endif %}
-                    </p>
-                </div>
-            </div>
+        {% if document.commentaire %}
+        <div class="comments">
+            <h4>Commentaires :</h4>
+            <p>{{ document.commentaire|linebreaks }}</p>
+        </div>
         {% endif %}
 
-        <!-- Actions pour devis -->
-        {% if devis and devis.peut_etre_transforme %}
-            <div class="section no-print">
-                <div style="text-align: center; padding: 20px; background: #e8f5e8; border-radius: 8px;">
-                    <p style="margin-bottom: 15px; color: #155724;">Ce devis accepté peut être transformé en facture.</p>
-                    <a href="{% url 'transformer-devis' devis.id %}" class="btn btn-success">
-                        🔄 Transformer en facture
-                    </a>
-                </div>
+        <!-- Transformer devis -->
+        {% if document_type == 'devis' and peut_transformer %}
+        <div class="section no-print">
+            <div style="text-align: center; padding: 20px; background: #e8f5e8; border-radius: 8px;">
+                <p style="margin-bottom: 15px; color: #155724;">Ce devis accepté peut être transformé en facture.</p>
+                <a href="{% url 'transformer-devis' document.id %}" class="btn btn-success">
+                    🔄 Transformer en facture
+                </a>
             </div>
+        </div>
+        {% endif %}
+    </div>
+        <!-- Régler la facture -->
+{% if document_type == 'facture' and document.solde_du > 0 %}
+<div class="section no-print">
+    <div style="text-align: center; padding: 20px; background: #e8f5e8; border-radius: 8px;">
+        <p style="margin-bottom: 15px; color: #155724;">
+            {% if document.solde_du > 0 %}
+                Cette facture n'a pas été entièrement réglée (solde : {{ document.solde_du }} FCFA).
+            {% else %}
+                Cette facture est déjà réglée.
+            {% endif %}
+        </p>
+        {% if document.solde_du > 0 %}
+        <a href="{% url 'reglement-create' facture_id=document.id %}" class="btn btn-success">
+            Réglez la facture
+        </a>
         {% endif %}
     </div>
 </div>
-
+{% endif %}
+          
+    </div>
+</div>
 {% endblock %}

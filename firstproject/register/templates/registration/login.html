@@ -165,7 +165,8 @@
                 {% endif %}
             </div>
             <button type="submit" class="login-button">Se connecter</button>
-            <a href="{% url 'email_finder' %}" class="password-reset">Mot de passe Oublié ?</a>
+            <p><a href="{% url 'custom_password_reset' %}" class="password-reset">Mot de passe Oublié ?</a></p>
+
             <p>Pas de compte ? Créez un compte <a href="{% url 'register' %}">ici</a></p>
         </form>
     </div>

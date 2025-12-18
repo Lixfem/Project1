@@ -264,9 +264,9 @@
             </div>
 
             <div class="chart-container">
-                <h3 class="chart-title">Répartition par Sexe des Clients</h3>
+                <h3 class="chart-title">Répartition par Type de Clients</h3>
                 <div class="chart-wrapper">
-                    <canvas id="repartitionSexeChart"></canvas>
+                    <canvas id="repartitionTypeClientChart"></canvas>
                 </div>
             </div>
 
@@ -400,14 +400,14 @@
                     }
                 });
 
-                const ctx4 = document.getElementById('repartitionSexeChart').getContext('2d');
-                const repartitionSexe = statistiques.clients.repartitionSexe || { Masculin: 0, Féminin: 0 };
-                charts.repartitionSexe = new Chart(ctx4, {
+                const ctx4 = document.getElementById('repartitionTypeClientChart').getContext('2d');
+                const repartitionTypeClient = statistiques.clients.repartitionTypeClient || { Individu: 0, Entreprise: 0 };
+                charts.repartitionTypeClient = new Chart(ctx4, {
                     type: 'pie',
                     data: {
-                        labels: Object.keys(repartitionSexe).length ? Object.keys(repartitionSexe) : ['Masculin', 'Féminin'],
+                        labels: Object.keys(repartitionTypeClient).length ? Object.keys(repartitionTypeClient) : ['Individu', 'Entreprsie'],
                         datasets: [{
-                            data: Object.values(repartitionSexe).length ? Object.values(repartitionSexe) : [0, 0],
+                            data: Object.values(repartitionTypeClient).length ? Object.values(repartitionTypeClient) : [0, 0],
                             backgroundColor: ['#3498db', '#e91e63', '#95a5a6']
                         }]
                     },
@@ -425,9 +425,9 @@
                         }
                     }
                 });
-console.log('repartitionSexe:', repartitionSexe)
-console.log('keys:', Object.keys(repartitionSexe));
-console.log('Values:', Object.values(repartitionSexe))
+console.log('repartitionTypeClient:', repartitionTypeClient)
+console.log('keys:', Object.keys(repartitionTypeClient));
+console.log('Values:', Object.values(repartitionTypeClient))
                 const ctx5 = document.getElementById('topProduitsChart').getContext('2d');
                 const topProduits = statistiques.produits.topVendus || [];
                 charts.topProduits = new Chart(ctx5, {

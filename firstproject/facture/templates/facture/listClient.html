@@ -1,15 +1,16 @@
 {% extends 'facture/base.html' %}
 
+
 {% block content %}
 <div class="container-fluid mt-4">
-    <!-- En-tête avec titre et bouton d'ajout -->
+    <!-- En-tête -->
     <div class="row mb-4">
         <div class="col-md-6">
             <h1 class="h3 mb-0">
                 <i class="fas fa-users me-2 text-primary"></i>
                 Liste des clients
             </h1>
-            <p class="text-muted">Gérez tous vos clients</p>
+            <p class="text-muted">Gérez tous vos clients ({{ total_clients }} total)</p>
         </div>
         <div class="col-md-6 text-md-end">
             <a href="{% url 'create-client' %}" class="btn btn-primary">
@@ -19,7 +20,7 @@
         </div>
     </div>
 
-    <!-- Barre de recherche et filtres -->
+    <!-- Recherche et filtres -->
     <div class="row mb-4">
         <div class="col-md-6">
             <div class="input-group">
@@ -30,15 +31,11 @@
             </div>
         </div>
         <div class="col-md-6">
-            <div class="row">
-                <div class="col-md-6">
-                    <select class="form-select" id="filterSex">
-                        <option value="">Tous les sexes</option>
-                        <option value="M">Masculin</option>
-                        <option value="F">Féminin</option>
-                    </select>
-                </div>
-            </div>
+            <select class="form-select" id="filterSex">
+                <option value="">Tous les sexes</option>
+                <option value="Masculin">Masculin</option>
+                <option value="Feminin">Féminin</option>
+            </select>
         </div>
     </div>
 
@@ -48,7 +45,7 @@
             <div class="bg-primary text-white p-3 rounded">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="mb-0">{{ clients.count }}</h4>
+                        <h4 class="mb-0">{{ total_clients }}</h4>
                         <p class="mb-0">Total clients</p>
                     </div>
                     <i class="fas fa-users fa-2x opacity-75"></i>
@@ -59,7 +56,7 @@
             <div class="bg-success text-white p-3 rounded">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="mb-0">{{ clients|length }}</h4>
+                        <h4 class="mb-0">{{ clients_actifs }}</h4>
                         <p class="mb-0">Actifs</p>
                     </div>
                     <i class="fas fa-user-check fa-2x opacity-75"></i>
@@ -71,41 +68,25 @@
     <!-- Table des clients -->
     <div class="row">
         <div class="col-12">
-            {% if clients %}
+            {% if page_obj %}
                 <div class="table-responsive">
                     <table class="table table-hover table-striped" id="clientsTable">
                         <thead class="table-dark">
                             <tr>
-                                <th scope="col">Identifiant</th>
-                                <th scope="col">
-                                    <i class="fas fa-user me-1"></i>Nom
-                                </th>
-                                <th scope="col">
-                                    <i class="fas fa-envelope me-1"></i>Email
-                                </th>
-                                <th scope="col">
-                                    <i class="fas fa-phone me-1"></i>Téléphone
-                                </th>
-                                <th scope="col">
-                                    <i class="fas fa-venus-mars me-1"></i>Sexe
-                                </th>
-                                <th scope="col">
-                                    <i class="fas fa-building me-1"></i>Type
-                                </th>
-                                <th scope="col">
-                                    <i class="fas fa-map-marker-alt me-1"></i>Ville
-                                </th>
-                                <th scope="col">
-                                    <i class="fas fa-id-card me-1"></i>ID Entreprise
-                                </th>
-                                <th scope="col">
-                                    <i class="fas fa-calendar-alt me-1"></i>Ajouté le
-                                </th>
+                                <th scope="col">#</th>
+                                <th scope="col"><i class="fas fa-user me-1"></i>Nom</th>
+                                <th scope="col"><i class="fas fa-envelope me-1"></i>Email</th>
+                                <th scope="col"><i class="fas fa-phone me-1"></i>Téléphone</th>
+                                <th scope="col"><i class="fas fa-venus-mars me-1"></i>Sexe</th>
+                                <th scope="col"><i class="fas fa-building me-1"></i>Type</th>
+                                <th scope="col"><i class="fas fa-map-marker-alt me-1"></i>Ville</th>
+                                <th scope="col"><i class="fas fa-id-card me-1"></i>ID Entreprise</th>
+                                <th scope="col"><i class="fas fa-calendar-alt me-1"></i>Ajouté le</th>
                                 <th scope="col" class="text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for client in clients %}
+                            {% for client in page_obj %}
                             <tr data-sex="{{ client.sexe }}">
                                 <td class="fw-bold">{{ forloop.counter }}</td>
                                 <td>
@@ -117,35 +98,33 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <a href="mailto:{{ client.email }}" class="text-decoration-none">
-                                        {{ client.email }}
-                                    </a>
-                                </td>
-                                <td>
-                                    {% if client.telephone %}
-                                        <a href="tel:{{ client.telephone }}" class="text-decoration-none">
-                                            {{ client.telephone }}
-                                        </a>
+                                    {% if client.email %}
+                                        <a href="mailto:{{ client.email }}" class="text-decoration-none">{{ client.email }}</a>
                                     {% else %}
                                         <span class="text-muted">Non renseigné</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if client.sexe == 'M' %}
-                                        <span class="badge bg-info">
-                                            <i class="fas fa-mars me-1"></i>Masculin
-                                        </span>
-                                    {% elif client.sexe == 'F' %}
-                                        <span class="badge bg-warning">
-                                            <i class="fas fa-venus me-1"></i>Féminin
-                                        </span>
+                                    {% if client.telephone %}
+                                        <a href="tel:{{ client.telephone }}" class="text-decoration-none">{{ client.telephone }}</a>
+                                    {% else %}
+                                        <span class="text-muted">Non renseigné</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if client.sexe == 'Masculin' %}
+                                        <span class="badge bg-info"><i class="fas fa-mars me-1"></i>Masculin</span>
+                                    {% elif client.sexe == 'Feminin' %}
+                                        <span class="badge bg-warning"><i class="fas fa-venus me-1"></i>Féminin</span>
                                     {% else %}
                                         <span class="text-muted">Non défini</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if client.client_type %}
-                                        <span class="badge bg-light text-dark">{{ client.client_type|title }}</span>
+                                    {% if client.client_type == 'INDIVIDU' %}
+                                        <span class="badge bg-success">Individu</span>
+                                    {% elif client.client_type == 'ENTREPRISE' %}
+                                        <span class="badge bg-primary">Entreprise</span>
                                     {% else %}
                                         <span class="text-muted">Non défini</span>
                                     {% endif %}
@@ -161,15 +140,11 @@
                                     {% if client.company_id_number %}
                                         {{ client.company_id_number }}
                                     {% else %}
-                                        <span class="text-muted">Non renseigné</span>
+                                        <span class="text-muted">N/A</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if client.date_creation %}
-                                        {{ client.date_creation|date:"d/m/Y" }}
-                                    {% else %}
-                                        <span class="text-muted">Non définie</span>
-                                    {% endif %}
+                                    {{ client.date_creation|date:"d/m/Y H:i" }}
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group" role="group">
@@ -190,13 +165,13 @@
                     </table>
                 </div>
 
-                <!-- Pagination -->
+                <!-- PAGINATION -->
                 {% if is_paginated %}
                 <nav aria-label="Pagination des clients">
                     <ul class="pagination justify-content-center mt-4">
                         {% if page_obj.has_previous %}
                             <li class="page-item">
-                                <a class="page-link" href="?page=1">&laquo; Première</a>
+                                <a class="page-link" href="?page=1">« Première</a>
                             </li>
                             <li class="page-item">
                                 <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Précédente</a>
@@ -220,7 +195,7 @@
                                 <a class="page-link" href="?page={{ page_obj.next_page_number }}">Suivante</a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Dernière &raquo;</a>
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Dernière »</a>
                             </li>
                         {% endif %}
                     </ul>
@@ -228,14 +203,12 @@
                 {% endif %}
 
             {% else %}
-                <!-- Message si aucun client -->
                 <div class="text-center py-5">
                     <i class="fas fa-users fa-5x text-muted mb-3"></i>
                     <h3 class="text-muted">Aucun client trouvé</h3>
                     <p class="text-muted">Commencez par ajouter votre premier client</p>
                     <a href="{% url 'create-client' %}" class="btn btn-primary btn-lg">
-                        <i class="fas fa-user-plus me-2"></i>
-                        Ajouter le premier client
+                        <i class="fas fa-user-plus me-2"></i>Ajouter le premier client
                     </a>
                 </div>
             {% endif %}
@@ -243,15 +216,12 @@
     </div>
 </div>
 
-<!-- Modal de confirmation de suppression -->
+<!-- MODAL SUPPRESSION -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    Confirmer la suppression
-                </h5>
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Confirmer la suppression</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -271,9 +241,9 @@
     </div>
 </div>
 
+<!-- JAVASCRIPT (IDENTIQUE - AUCUN CHANGEMENT) -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Recherche en temps réel
     const searchInput = document.getElementById('searchInput');
     const filterSex = document.getElementById('filterSex');
     const table = document.getElementById('clientsTable');
@@ -307,54 +277,24 @@ document.addEventListener('DOMContentLoaded', function() {
     filterSex.addEventListener('change', filterTable);
 });
 
-// Fonction de confirmation de suppression
 function confirmDelete(clientId, clientName, deleteUrl) {
     document.getElementById('clientName').textContent = clientName;
     document.getElementById('deleteForm').action = deleteUrl;
-    
-    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-    modal.show();
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }
 </script>
 
+<!-- CSS INTÉGRÉ (IDENTIQUE) -->
 <style>
-.avatar {
-    font-weight: bold;
-    font-size: 14px;
-}
-
-.table th {
-    border-top: none;
-    font-weight: 600;
-}
-
-.btn-group .btn {
-    border-radius: 0;
-}
-
-.btn-group .btn:first-child {
-    border-top-left-radius: 0.375rem;
-    border-bottom-left-radius: 0.375rem;
-}
-
-.btn-group .btn:last-child {
-    border-top-right-radius: 0.375rem;
-    border-bottom-right-radius: 0.375rem;
-}
-
+.avatar { font-weight: bold; font-size: 14px; }
+.table th { border-top: none; font-weight: 600; }
+.btn-group .btn { border-radius: 0; }
+.btn-group .btn:first-child { border-top-left-radius: 0.375rem; border-bottom-left-radius: 0.375rem; }
+.btn-group .btn:last-child { border-top-right-radius: 0.375rem; border-bottom-right-radius: 0.375rem; }
 @media (max-width: 768px) {
-    .table-responsive {
-        font-size: 0.875rem;
-    }
-    
-    .btn-group {
-        flex-direction: column;
-    }
-    
-    .btn-group .btn {
-        border-radius: 0.375rem !important;
-        margin-bottom: 2px;
-    }
+    .table-responsive { font-size: 0.875rem; }
+    .btn-group { flex-direction: column; }
+    .btn-group .btn { border-radius: 0.375rem !important; margin-bottom: 2px; }
 }
 </style>
 {% endblock %}

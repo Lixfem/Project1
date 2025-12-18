@@ -1,6 +1,5 @@
 {% extends 'facture/base.html' %}
 {% load humanize %}
-<!-- {% load static %} -->
 
 {% block content %}
     <!-- Main content -->
@@ -10,11 +9,129 @@
         <div class="bg-white border-bottom px-4 py-3">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
-                    {% block breadcrumb_items %}{% endblock %}
+                    <li class="breadcrumb-item active" aria-current="page">
+                        <i class="fas fa-tachometer-alt me-1"></i>Tableau de bord
+                    </li>
                 </ol>
             </nav>
         </div>
         {% endblock %}
+
+        <!-- CSS INTÉGRÉ DIRECTEMENT ICI -->
+        <style>
+            .stats-card {
+                border: none;
+                box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+                transition: all 0.3s ease;
+                border-radius: 0.375rem;
+            }
+            .stats-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+            }
+            .stats-card.success { 
+                border-left: 4px solid #28a745 !important; 
+                background-color: #f8fff9;
+            }
+            .stats-card.warning { 
+                border-left: 4px solid #ffc107 !important; 
+                background-color: #fffdf5;
+            }
+            .stats-card.primary { 
+                border-left: 4px solid #007bff !important; 
+                background-color: #f0f8ff;
+            }
+            .stats-card.info { 
+                border-left: 4px solid #17a2b8 !important; 
+                background-color: #f0f9ff;
+            }
+            
+            .card-header.bg-primary { 
+                background: linear-gradient(135deg, #007bff, #0056b3) !important;
+            }
+            
+            /* Styles pour les boutons d'action */
+            .action-btn {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 1.5rem 1rem;
+                border-radius: 0.5rem;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                min-height: 120px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            
+            .action-btn:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            }
+            
+            .action-btn i {
+                font-size: 2.5rem;
+                margin-bottom: 0.75rem;
+            }
+            
+            .action-btn span {
+                font-size: 0.95rem;
+                font-weight: 600;
+                text-align: center;
+            }
+            
+            .action-btn.btn-primary {
+                background: linear-gradient(135deg, #007bff, #0056b3);
+                border: none;
+                color: white;
+            }
+            
+            .action-btn.btn-success {
+                background: linear-gradient(135deg, #28a745, #1e7e34);
+                border: none;
+                color: white;
+            }
+            
+            .action-btn.btn-info {
+                background: linear-gradient(135deg, #17a2b8, #117a8b);
+                border: none;
+                color: white;
+            }
+            
+            .action-btn.btn-secondary {
+                background: linear-gradient(135deg, #6c757d, #545b62);
+                border: none;
+                color: white;
+            }
+            
+            .action-btn.btn-dark {
+                background: linear-gradient(135deg, #343a40, #23272b);
+                border: none;
+                color: white;
+            }
+            
+            .action-btn.btn-warning {
+                background: linear-gradient(135deg, #ffc107, #e0a800);
+                border: none;
+                color: #212529;
+            }
+            
+            @media (max-width: 768px) {
+                .action-btn {
+                    min-height: 100px;
+                    padding: 1rem 0.5rem;
+                }
+                
+                .action-btn i {
+                    font-size: 2rem;
+                    margin-bottom: 0.5rem;
+                }
+                
+                .action-btn span {
+                    font-size: 0.85rem;
+                }
+            }
+        </style>
 
         <!-- Page content -->
         <div class="p-4">
@@ -28,17 +145,19 @@
                 {% endfor %}
             {% endif %}
 
-            <!-- Contenu par défaut - Tableau de bord -->
+            <!-- TITRE -->
             <div class="row mb-4">
                 <div class="col-12">
-                    <h1 class="h3 mb-3">Tableau de bord</h1>
+                    <h1 class="h3 mb-3">
+                        <i class="fas fa-tachometer-alt me-2 text-primary"></i>
+                        Tableau de bord
+                    </h1>
                 </div>
             </div>
 
-            <!-- Statistiques rapides  ---------------------->
-
-            <!-- Factures impayes -->
+            <!-- STATISTIQUES RAPIDES -->
             <div class="row mb-4">
+                <!-- Factures payées -->
                 <div class="col-xl-3 col-md-6 mb-3">
                     <div class="card stats-card success">
                         <div class="card-body">
@@ -48,20 +167,21 @@
                                     <h4 class="mb-0">{{ total_factures_payees|floatformat:2|intcomma }} FCFA</h4>
                                 </div>
                                 <div class="text-success">
-                                    <i class="fas fa-franc-sign fa-2x"></i> <!-- Icône Font Awesome pour le franc -->
+                                    <i class="fas fa-franc-sign fa-2x"></i>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Factures en attente -->
                 <div class="col-xl-3 col-md-6 mb-3">
                     <div class="card stats-card warning">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
                                 <div class="flex-grow-1">
                                     <h6 class="text-muted mb-1">Factures en attente</h6>
-                                    <h4 class="mb-0">{{ total_factures_en_attente| floatformat:2|intcomma}} FCFA</h4>
+                                    <h4 class="mb-0">{{ total_factures_en_attente|floatformat:2|intcomma }} FCFA</h4>
                                 </div>
                                 <div class="text-warning">
                                     <i class="fas fa-clock fa-2x"></i>
@@ -71,13 +191,14 @@
                     </div>
                 </div>
                 
+                <!-- Devis en cours -->
                 <div class="col-xl-3 col-md-6 mb-3">
-                    <div class="card stats-card">
+                    <div class="card stats-card primary">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
                                 <div class="flex-grow-1">
                                     <h6 class="text-muted mb-1">Devis en cours</h6>
-                                    <h4 class="mb-0">{{total_devis_en_cours}}</h4>
+                                    <h4 class="mb-0">{{ total_devis_en_cours|floatformat:2|intcomma }} FCFA</h4>
                                 </div>
                                 <div class="text-primary">
                                     <i class="fas fa-file-invoice fa-2x"></i>
@@ -87,13 +208,14 @@
                     </div>
                 </div>
                 
+                <!-- Clients actifs -->
                 <div class="col-xl-3 col-md-6 mb-3">
-                    <div class="card stats-card">
+                    <div class="card stats-card info">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
                                 <div class="flex-grow-1">
                                     <h6 class="text-muted mb-1">Clients actifs</h6>
-                                    <h4 class="mb-0">{{nombre_clients_actifs}}</h4>
+                                    <h4 class="mb-0">{{ nombre_clients_actifs }}</h4>
                                 </div>
                                 <div class="text-info">
                                     <i class="fas fa-users fa-2x"></i>
@@ -104,44 +226,54 @@
                 </div>
             </div>
 
-            <!-- Actions rapides -->
+            <!-- ACTIONS RAPIDES -->
             <div class="row">
                 <div class="col-12">
                     <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Actions rapides</h5>
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-bolt me-2"></i>Actions rapides
+                            </h5>
                         </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-2 mb-3">
-                                    <a href="{% url 'create-devis' %}" class="btn btn-primary w-100">
-                                        <i class="fas fa-plus-circle me-2"></i>
-                                        Nouveau devis
+                        <div class="card-body p-4">
+                            <div class="row g-3">
+                                <!-- Nouveau devis -->
+                                <div class="col-lg-2 col-md-4 col-sm-6">
+                                    <a href="{% url 'create-devis' %}" class="action-btn btn-primary">
+                                        <i class="fas fa-file-invoice"></i>
+                                        <span>Nouveau devis</span>
                                     </a>
                                 </div>
-                                <div class="col-md-2 mb-3">
-                                    <a href="{%url 'create-facture' %}" class="btn btn-success w-100">
-                                        <i class="fas fa-receipt me-2"></i>
-                                        Nouvelle facture
-                                    </a>
                                 
-                                </div>
-                                <div class="col-md-2 mb-3">
-                                    <a href="{% url 'create-client'%}" class="btn btn-info w-100">
-                                        <i class="fas fa-user-plus me-2"></i>
-                                        Nouveau client
+                                <!-- Nouveau client -->
+                                <div class="col-lg-2 col-md-4 col-sm-6">
+                                    <a href="{% url 'create-client' %}" class="action-btn btn-info">
+                                        <i class="fas fa-user-plus"></i>
+                                        <span>Nouveau client</span>
                                     </a>
                                 </div>
-                                <div class="col-md-2 mb-3">
-                                    <a href="{% url 'stat'%}" class="btn btn-secondary w-100">
-                                        <i class="fas fa-chart-bar me-2"></i>
-                                        Voir les stats
+                                
+                                <!-- Nouvel article -->
+                                <div class="col-lg-2 col-md-4 col-sm-6">
+                                    <a href="{% url 'ajouter_element' %}" class="action-btn btn-warning">
+                                        <i class="fas fa-box"></i>
+                                        <span>Nouvel article</span>
                                     </a>
                                 </div>
-                                <div class="col-md-2 mb-3">
-                                    <a href="{% url 'ajouter_element' %}" class="btn btn-dark w-100">
-                                        <i class="fas fa-plus-circle me-2"></i>
-                                        Nouvel article
+                                
+                                <!-- Statistiques -->
+                                <div class="col-lg-2 col-md-4 col-sm-6">
+                                    <a href="{% url 'stat' %}" class="action-btn btn-secondary">
+                                        <i class="fas fa-chart-bar"></i>
+                                        <span>Statistiques</span>
+                                    </a>
+                                </div>
+                                
+                                <!-- Liste clients -->
+                                <div class="col-lg-2 col-md-4 col-sm-6">
+                                    <a href="{% url 'liste-clients' %}" class="action-btn btn-dark">
+                                        <i class="fas fa-users"></i>
+                                        <span>Voir clients</span>
                                     </a>
                                 </div>
                             </div>

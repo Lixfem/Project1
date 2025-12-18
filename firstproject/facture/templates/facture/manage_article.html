@@ -134,13 +134,13 @@
 
     <div class="tabs">
         <div class="tab active" onclick="switchTab('produit', this)">
-            📦 Produits <span class="badge badge-primary">{{ produits.count }}</span>
+            Produits <span class="badge badge-primary">{{ produits.count }}</span>
         </div>
         <div class="tab" onclick="switchTab('service', this)">
-            🛠️ Services <span class="badge badge-primary">{{ services.count }}</span>
+            Services <span class="badge badge-primary">{{ services.count }}</span>
         </div>
         <div class="tab" onclick="switchTab('category', this)">
-            🗂️ Catégories <span class="badge badge-primary">{{ categories.count }}</span>
+            Catégories <span class="badge badge-primary">{{ categories.count }}</span>
         </div>
     </div>
 
@@ -173,9 +173,9 @@
                                 <th>#</th>
                                 <th>Nom</th>
                                 <th>Description</th>
-                                <th>Quantité</th>
+                                <!-- <th>Quantité</th> -->
                                 <th>Prix Unitaire</th>
-                                <th>Total</th>
+                                <!-- <th>Total</th> -->
                                 <th>Catégorie</th>
                                 <th class=>Actions</th>
                             </tr>
@@ -186,9 +186,9 @@
                                     <td>{{ forloop.counter }}</td>
                                     <td><strong>{{ produit.nom_produit }}</strong></td>
                                     <td>{{ produit.description_produit|truncatewords:10|default:"—" }}</td>
-                                    <td>{{ produit.quantity }}</td>
+                                    <!-- <td>{{ produit.quantity }}</td> -->
                                     <td>{{ produit.prix_unitaire_produit|floatformat:2 }} FCFA</td>
-                                    <td><strong>{{ produit.get_total|floatformat:2 }} FCFA</strong></td>
+                                    <!-- <td><strong>{{ produit.get_total|floatformat:2 }} FCFA</strong></td> -->
                                     <td>
                                         {% if produit.category %}
                                             <span class="badge bg-info">{{ produit.category.nom }}</span>
@@ -240,7 +240,7 @@
                                 <th>Nom</th>
                                 <th>Description</th>
                                 <th>Montant</th>
-                                <th>Date de Prestation</th>
+                                <!-- <th>Date de Prestation</th> -->
                                 <th class="text-center">Actions</th>
                             </tr>
                         </thead>
@@ -251,13 +251,13 @@
                                     <td><strong>{{ service.nom_service }}</strong></td>
                                     <td>{{ service.description_service|truncatewords:10|default:"—" }}</td>
                                     <td><strong>{{ service.montant_du_service|floatformat:2 }} FCFA</strong></td>
-                                    <td>
+                                    <!-- <td>
                                         {% if service.date_prestation_service %}
                                             {{ service.date_prestation_service|date:"d/m/Y" }}
                                         {% else %}
                                             <span class="text-muted">Non spécifiée</span>
                                         {% endif %}
-                                    </td>
+                                    </td> -->
                                     <td class="text-center">
                                        <a href="{% url 'update-article'%}?type_element=service&id={{ service.id|default_if_none:'' }}" class="btn btn-primary btn-sm strectched-link" title="Modifier le service"><i class="fas fa-edit me-1"></i>Modifier</a>
                                         <form method="POST" style="display:inline;" onsubmit="return confirm('Voulez-vous vraiment supprimer le service \'{{ service.nom_service }}\' ?');">

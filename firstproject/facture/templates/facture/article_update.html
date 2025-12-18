@@ -182,13 +182,13 @@
 
 <div class="container">
     <div class="header">
-        <h1>🛠️ Gérer les Articles</h1>
+        <h1>Gérer les Articles</h1>
     </div>
 
     <div class="tabs">
-        <div class="tab {% if type_element == 'produit' %}active{% endif %}" onclick="switchTab('produit', this)">📦 Produits</div>
-        <div class="tab {% if type_element == 'service' %}active{% endif %}" onclick="switchTab('service', this)">🛠️ Services</div>
-        <div class="tab {% if type_element == 'category' %}active{% endif %}" onclick="switchTab('category', this)">🗂️ Catégories</div>
+        <div class="tab {% if type_element == 'produit' %}active{% endif %}" onclick="switchTab('produit', this)">Produits</div>
+        <div class="tab {% if type_element == 'service' %}active{% endif %}" onclick="switchTab('service', this)">Services</div>
+        <div class="tab {% if type_element == 'category' %}active{% endif %}" onclick="switchTab('category', this)">Catégories</div>
     </div>
 
     <div class="form-container">
@@ -249,7 +249,7 @@
                         {% endif %}
                     </div>
 
-                    <div class="row">
+                    <!-- <div class="row"> -->
                         <div class="form-group">
                             <label for="{{ produit_form.prix_unitaire_produit.id_for_label }}">Prix unitaire (FCFA) <span class="required">*</span></label>
                             {{ produit_form.prix_unitaire_produit }}
@@ -258,18 +258,18 @@
                             {% endif %}
                         </div>
 
-                        <div class="form-group">
+                        <!-- <div class="form-group">
                             <label for="{{ produit_form.quantity.id_for_label }}">Quantité <span class="required">*</span></label>
                             {{ produit_form.quantity }}
                             {% if produit_form.quantity.errors %}
                                 <div class="text-danger">{{ produit_form.quantity.errors }}</div>
                             {% endif %}
-                        </div>
-                    </div>
+                        </div> -->
+                    <!-- </div> -->
 
-                    <div class="calculation-display">
+                    <!-- <div class="calculation-display">
                         <strong>Total: <span id="totalProduit">0.00</span> FCFA</strong>
-                    </div>
+                    </div> -->
 
                     <div class="btn-group">
                         <button type="submit" class="btn btn-primary">✓ Enregistrer</button>
@@ -416,35 +416,35 @@ function switchTab(type, element) {
     url.searchParams.set('type_element', type);
     window.history.pushState({}, '', url);
     
-    if (type === 'produit') {
-        calculerTotal();
+    // if (type === 'produit') {
+    //     calculerTotal();
     }
 }
 
-function calculerTotal() {
-    const produitSection = document.getElementById('produit-form');
-    if (produitSection && produitSection.classList.contains('active')) {
-        const prix = parseFloat(document.getElementById('id_prix_unitaire_produit')?.value) || 0;
-        const qty = parseInt(document.getElementById('id_quantity')?.value) || 0;
-        const total = (prix * qty).toFixed(2);
-        const totalElement = document.getElementById('totalProduit');
-        if (totalElement) {
-            totalElement.textContent = total;
-        }
-    }
-}
+// function calculerTotal() {
+//     const produitSection = document.getElementById('produit-form');
+//     if (produitSection && produitSection.classList.contains('active')) {
+//         const prix = parseFloat(document.getElementById('id_prix_unitaire_produit')?.value) || 0;
+//         const qty = parseInt(document.getElementById('id_quantity')?.value) || 0;
+//         const total = (prix * qty).toFixed(2);
+//         const totalElement = document.getElementById('totalProduit');
+//         if (totalElement) {
+//             totalElement.textContent = total;
+//         }
+//     }
+// }
 
-// Attach event listeners for real-time calculation
-const produitSection = document.getElementById('produit-form');
-if (produitSection) {
-    const prixInput = document.getElementById('id_prix_unitaire_produit');
-    const qtyInput = document.getElementById('id_quantity');
-    if (prixInput && qtyInput) {
-        prixInput.addEventListener('input', calculerTotal);
-        qtyInput.addEventListener('input', calculerTotal);
-        calculerTotal();
-    }
-}
+// // Attach event listeners for real-time calculation
+// const produitSection = document.getElementById('produit-form');
+// if (produitSection) {
+//     const prixInput = document.getElementById('id_prix_unitaire_produit');
+//     const qtyInput = document.getElementById('id_quantity');
+//     if (prixInput && qtyInput) {
+//         prixInput.addEventListener('input', calculerTotal);
+//         qtyInput.addEventListener('input', calculerTotal);
+//         calculerTotal();
+//     }
+// }
 
 // Ensure at least one tab is active
 document.addEventListener('DOMContentLoaded', () => {

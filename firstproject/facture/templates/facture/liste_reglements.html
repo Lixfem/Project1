@@ -1,0 +1,405 @@
+<!-- templates/facture/liste_reglements.html -->
+{% extends 'facture/base.html' %}
+{% load humanize %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+    :root {
+        --primary-color: #667eea;
+        --primary-dark: #5a67d8;
+        --success-color: #48bb78;
+        --warning-color: #ed8936;
+        --danger-color: #f56565;
+        --light-bg: #f7fafc;
+        --white: #ffffff;
+        --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        --border-color: #e2e8f0;
+    }
+
+    .reglements-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: var(--white);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    .reglements-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 2.5rem;
+        text-align: center;
+    }
+
+    .reglements-header h1 {
+        margin: 0 0 0.5rem 0;
+        font-size: 2.5rem;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+    }
+
+    .reglements-header p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 1.2rem;
+    }
+
+    .reglements-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        padding: 2.5rem;
+        background: var(--light-bg);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .stat-card {
+        background: var(--white);
+        padding: 1.5rem;
+        border-radius: 16px;
+        text-align: center;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .stat-total { background: linear-gradient(135deg, var(--success-color) 0%, #38a169 100%); }
+    .stat-count { background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        color: #718096;
+        font-weight: 500;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        padding: 0 2.5rem 2.5rem;
+    }
+
+    .reglements-table {
+        width: 100%;
+        min-width: 800px;
+        border-collapse: collapse;
+        background: var(--white);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .reglements-table thead th {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .reglements-table tbody td {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        vertical-align: middle;
+    }
+
+    .reglements-table tbody tr:hover {
+        background: #f7fafc;
+        transform: scale(1.01);
+        transition: all 0.2s ease;
+    }
+
+    .reglements-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .client-name {
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    .facture-num {
+        background: var(--light-bg);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        color: var(--primary-color);
+        font-size: 0.9rem;
+    }
+
+    .montant {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--success-color);
+    }
+
+    .date {
+        color: #718096;
+        font-size: 0.95rem;
+    }
+
+    .mode-reglement {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: var(--light-bg);
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .status-paye { background: linear-gradient(135deg, var(--success-color) 0%, #38a169 100%); color: white; }
+    .status-partiel { background: linear-gradient(135deg, var(--warning-color) 0%, #dd6b20 100%); color: white; }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .empty-state i {
+        font-size: 6rem;
+        color: #e2e8f0;
+        margin-bottom: 2rem;
+    }
+    .action-btn {
+        padding: 0.5rem;
+        margin: 0 0.25rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        width: 38px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-edit {
+        background: #4299e1;
+        color: white;
+    }
+    .btn-edit:hover {
+        background: #3182ce;
+        transform: translateY(-2px);
+    }
+
+    .btn-delete {
+        background: var(--danger-color);
+        color: white;
+    }
+    .btn-delete:hover {
+        background: #e53e3e;
+        transform: translateY(-2px);
+    }
+
+    .actions-cell {
+        white-space: nowrap;
+    }
+
+    .empty-state h3 {
+        color: #4a5568;
+        margin-bottom: 1rem;
+        font-size: 1.75rem;
+    }
+
+    @media (max-width: 768px) {
+        .reglements-stats {
+            grid-template-columns: 1fr;
+            padding: 1.5rem;
+        }
+        
+        .table-container {
+            padding: 1.5rem;
+        }
+        
+        .reglements-table {
+            min-width: 600px;
+        }
+    }
+</style>
+
+<div class="reglements-container">
+    <!-- Header -->
+    <div class="reglements-header">
+        <h1><i class="fas fa-list me-3"></i>Liste des Règlements</h1>
+        <p>Tous les paiements enregistrés dans votre système</p>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="reglements-stats">
+        <div class="stat-card">
+            <div class="stat-icon stat-total">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <div class="stat-value">{{ total_reglements|floatformat:0|intcomma }}</div>
+            <div class="stat-label">Total encaissé</div>
+            <div class="stat-label" style="font-size: 0.8rem; opacity: 0.8;">FCFA</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-count">
+                <i class="fas fa-receipt"></i>
+            </div>
+            <div class="stat-value">{{ reglements.count }}</div>
+            <div class="stat-label">Règlements</div>
+            <div class="stat-label" style="font-size: 0.8rem;">Total</div>
+        </div>
+    </div>
+
+    <!-- Tableau -->
+    <div class="table-container">
+        {% if reglements %}
+            <div class="table-responsive">
+                <table class="reglements-table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-calendar me-2"></i>Date</th>
+                            <th><i class="fas fa-user me-2"></i>Client</th>
+                            <th><i class="fas fa-file-invoice me-2"></i>Facture</th>
+                            <th><i class="fas fa-credit-card me-2"></i>Mode</th>
+                            <th><i class="fas fa-coins me-2"></i>Montant</th>
+                            <th><i class="fas fa-info-circle me-2"></i>Statut</th>
+                            <th><i class="fas fa-cogs me-2"></i>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reglement in reglements %}
+                        <tr>
+                            <td>
+                                <div class="date">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {{ reglement.date_reglement|date:"d/m/Y" }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="client-name">
+                                    <i class="fas fa-user-check me-1"></i>
+                                    {{ reglement.client.nom }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="facture-num">
+                                    <i class="fas fa-file-invoice-dollar me-1"></i>
+                                    {{ reglement.facture.numero }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="mode-reglement">
+                                    <i class="fas fa-credit-card me-1"></i>
+                                    {{ reglement.mode_reglement.nom }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="montant">
+                                    <i class="fas fa-check-circle me-1"></i>
+                                    {{ reglement.montant_reglement|floatformat:0|intcomma }} FCFA
+                                </div>
+                            </td>
+                            <td>
+                                {% if reglement.facture.solde_du <= 0 %}
+                                    <span class="status-badge status-paye">Payé</span>
+                                {% else %}
+                                    <span class="status-badge status-partiel">Partiel</span>
+                                {% endif %}
+                            </td>
+                            <td class="actions-cell">
+                                <!-- Bouton Modifier -->
+                                <a href="{% url 'modifier-reglement' reglement.id %}" 
+                                   class="action-btn btn-edit" 
+                                   title="Modifier le règlement">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+
+                                <!-- Bouton Supprimer avec confirmation -->
+                                <form method="post" 
+                                      action="{% url 'supprimer-reglement' reglement.id %}" 
+                                      style="display:inline;"
+                                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce règlement ? Cette action est irréversible.');">
+                                    {% csrf_token %}
+                                    <button type="submit" 
+                                            class="action-btn btn-delete" 
+                                            title="Supprimer le règlement">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-receipt-slash"></i>
+                <h3>Aucun règlement enregistré</h3>
+                <p class="lead text-muted">Commencez par ajouter des règlements à vos factures.</p>
+                <a href="{% url 'liste-facture' %}" class="btn btn-primary" style="
+                    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+                    color: white;
+                    padding: 1rem 2rem;
+                    border-radius: 12px;
+                    text-decoration: none;
+                    font-weight: 600;
+                ">
+                    <i class="fas fa-plus me-2"></i> Gérer les factures
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Animation d'apparition progressive
+document.addEventListener('DOMContentLoaded', function() {
+    const rows = document.querySelectorAll('.reglements-table tbody tr');
+    rows.forEach((row, index) => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            row.style.transition = 'all 0.6s ease';
+            row.style.opacity = '1';
+            row.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

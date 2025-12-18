@@ -1,0 +1,60 @@
+<!-- templates/facture/mode_reglement_list.html -->
+{% extends 'facture/base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-credit-card"></i> Modes de Règlement</h2>
+        <a href="{% url 'mode-reglement-create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Ajouter
+        </a>
+    </div>
+
+    {% if modes %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="thead-light">
+                <tr>
+                    <th>Nom</th>
+                    <th>Description</th>
+                    <th>Statut</th>
+                    <th>Date création</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mode in modes %}
+                <tr>
+                    <td><strong>{{ mode.nom }}</strong></td>
+                    <td>{{ mode.description|default:"—" }}</td>
+                    <td>
+                        <span class="badge  {{ mode.get_badge_class }}">
+                            {% if mode.est_actif %}Actif{% else %}Inactif{% endif %}
+                        </span>
+                    </td>
+                    <td>{{ mode.date_creation|date:"d/m/Y" }}</td>
+                    <td>
+                        <a href="{% url 'mode-reglement-update' mode_id=mode.id %}" class="btn btn-sm btn-outline-primary" title="Modifier">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <form method="post" action="{% url 'toggle-mode-reglement' mode.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-warning" title="{% if mode.est_actif %}Désactiver{% else %}Activer{% endif %}">
+                                <i class="fas fa-power-off"></i>
+                            </button>
+                        </form>
+                        <a href="{% url 'mode-reglement-delete' mode_id=mode.id %}" class="btn btn-sm btn-outline-danger" title="Supprimer" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce mode de règlement ?');">
+                            <i class="fas fa-trash-alt"></i>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <p>Aucun mode de règlement configuré.</p>
+        <a href="{% url 'mode-reglement-create' %}" class="btn btn-primary">Créer le premier</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

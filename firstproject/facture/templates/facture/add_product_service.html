@@ -124,7 +124,14 @@
         grid-template-columns: 1fr 1fr;
         gap: 20px;
     }
-
+    .modal-content {
+        border-radius: 12px;
+    }
+    .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
     .calculation-display {
         background: #f8f9fa;
         padding: 15px;
@@ -181,9 +188,9 @@
     }
 
     @media (max-width: 768px) {
-        .row {
+        /* .row {
             grid-template-columns: 1fr;
-        }
+        } */
 
         .form-container {
             padding: 25px;
@@ -211,14 +218,14 @@
         <h1>📦 Ajouter un Article</h1>
     </div>
 
-    <div class="tabs">
-        <div class="tab active" onclick="switchTab('produit', this)">
+   <div class="tabs">
+        <div class="tab {% if type_element == 'produit' %}active{% endif %}" onclick="switchTab('produit', this)">
             📦 Produit
         </div>
-        <div class="tab" onclick="switchTab('service', this)">
+        <div class="tab {% if type_element == 'service' %}active{% endif %}" onclick="switchTab('service', this)">
             🛠️ Service
         </div>
-        <div class="tab" onclick="switchTab('category', this)">
+        <div class="tab {% if type_element == 'category' %}active{% endif %}" onclick="switchTab('category', this)">
             🗂️ Catégorie
         </div>
     </div>
@@ -228,7 +235,7 @@
         {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
+                    {{ message | safe }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             {% endfor %}
@@ -238,6 +245,7 @@
         <form class="form-section active" id="produit-form" method="POST" action="{% url 'ajouter_element' %}">
             {% csrf_token %}
             <input type="hidden" name="type_element" value="produit">
+            <input type="hidden" name="return_to_devis" value="{{ return_to_devis|yesno:'true,false' }}">
             
             <div class="form-group">
                 <label for="{{ produit_form.nom_produit.id_for_label }}">Nom du produit <span class="required">*</span></label>
@@ -263,7 +271,6 @@
                 {% endif %}
             </div>
 
-            <div class="row">
                 <div class="form-group">
                     <label for="{{ produit_form.prix_unitaire_produit.id_for_label }}">Prix unitaire (FCFA) <span class="required">*</span></label>
                     {{ produit_form.prix_unitaire_produit }}
@@ -272,18 +279,18 @@
                     {% endif %}
                 </div>
 
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <label for="{{ produit_form.quantity.id_for_label }}">Quantité <span class="required">*</span></label>
-                    {{ produit_form.quantity }}
-                    {% if produit_form.quantity.errors %}
-                        <div class="text-danger">{{ produit_form.quantity.errors }}</div>
+                    {{ produit_form.produit.quantite }}
+                    {% if produit_form.produit.errors %}
+                        <div class="text-danger">{{ produit_form.quantite.errors }}</div>
                     {% endif %}
-                </div>
-            </div>
+                </div> -->
+            <!-- </div> -->
 
-            <div class="calculation-display">
+            <!-- <div class="calculation-display">
                 <strong>Total: <span id="totalProduit">0.00</span> FCFA</strong>
-            </div>
+            </div> -->
 
             <div class="btn-group">
                 <button type="submit" class="btn btn-primary">✓ Ajouter le produit</button>
@@ -295,6 +302,8 @@
         <form class="form-section" id="service-form" method="POST" action="{% url 'ajouter_element' %}">
             {% csrf_token %}
             <input type="hidden" name="type_element" value="service">
+            <input type="hidden" name="return_to_devis" value="{{ return_to_devis|yesno:'true,false' }}">
+
             
             <div class="form-group">
                 <label for="{{ service_form.nom_service.id_for_label }}">Nom du service <span class="required">*</span></label>
@@ -364,6 +373,26 @@
             </div>
         </form>
     </div>
+
+      <!-- Modale pour confirmation de création -->
+    <div class="modal fade" id="createItemModal" tabindex="-1" aria-labelledby="createItemModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createItemModalLabel">Créer un nouvel élément</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Voulez-vous créer "<span id="itemName"></span>" dans un nouvel onglet ?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <a id="createItemLink" href="#" target="_blank" class="btn btn-primary">Ouvrir</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 </div>
 
 <script>
@@ -377,24 +406,30 @@
         element.classList.add('active');
         document.getElementById(type + '-form').classList.add('active');
         
-        if (type === 'produit') {
-            calculerTotal();
+        // if (type === 'produit') {
+        //     calculerTotal();
+        // }
+    }
+
+    // function calculerTotal() {
+    //     const prix = parseFloat(document.getElementById('id_prix_unitaire_produit').value) || 0;
+    //     const qty = parseInt(document.getElementById('id_quantity').value) || 0;
+    //     const total = (prix * qty).toFixed(2);
+    //     document.getElementById('totalProduit').textContent = total;
+    // }
+
+    // // Attach event listeners for real-time calculation
+    // document.getElementById('id_prix_unitaire_produit').addEventListener('input', calculerTotal);
+    // document.getElementById('id_quantity').addEventListener('input', calculerTotal);
+
+   // Initial calculation and tab selection
+    document.addEventListener('DOMContentLoaded', function () {
+        const typeElement = "{{ type_element }}";
+        if (typeElement) {
+            switchTab(typeElement, document.querySelector(`.tab[onclick*="${typeElement}"]`));
         }
-    }
-
-    function calculerTotal() {
-        const prix = parseFloat(document.getElementById('id_prix_unitaire_produit').value) || 0;
-        const qty = parseInt(document.getElementById('id_quantity').value) || 0;
-        const total = (prix * qty).toFixed(2);
-        document.getElementById('totalProduit').textContent = total;
-    }
-
-    // Attach event listeners for real-time calculation
-    document.getElementById('id_prix_unitaire_produit').addEventListener('input', calculerTotal);
-    document.getElementById('id_quantity').addEventListener('input', calculerTotal);
-
-    // Initial calculation
-    calculerTotal();
+        // calculerTotal();
+    });
 </script>
 
 {% endblock %}

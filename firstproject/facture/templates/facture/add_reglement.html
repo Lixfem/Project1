@@ -1,0 +1,394 @@
+<!-- templates/facture/add_reglement.html -->
+{% extends 'facture/base.html' %}
+{% load math_filters %}
+{% load humanize %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+    :root {
+        --primary-color: #667eea;
+        --primary-dark: #5a67d8;
+        --success-color: #48bb78;
+        --danger-color: #f56565;
+        --warning-color: #ed8936;
+        --light-bg: #f7fafc;
+        --white: #ffffff;
+        --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .reglement-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background: var(--white);
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    .reglement-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .reglement-header h1 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.75rem;
+        font-weight: 600;
+    }
+
+    .reglement-header p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+
+    .reglement-content {
+        padding: 2.5rem;
+    }
+
+    .facture-summary {
+        background: var(--light-bg);
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .summary-row:last-child {
+        border-bottom: none;
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: var(--primary-color);
+    }
+
+    .summary-label {
+        font-weight: 500;
+        color: #4a5568;
+    }
+
+    .summary-value {
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    .solde-row {
+        background: linear-gradient(90deg, #c6f6d5, #9ae6b4);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    .solde-row .summary-value {
+        color: var(--success-color);
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 0.95rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        background: white;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-control.error {
+        border-color: var(--danger-color);
+    }
+
+    .mode-select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.75rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+    }
+
+    .montant-input {
+        text-align: right;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .max-solde-btn {
+        background: var(--success-color);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-left: 1rem;
+    }
+
+    .max-solde-btn:hover {
+        background: #38a169;
+        transform: translateY(-1px);
+    }
+
+    .actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 140px;
+        justify-content: center;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-secondary {
+        background: #a0aec0;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #718096;
+        transform: translateY(-2px);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #a0aec0;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    @media (max-width: 640px) {
+        .reglement-content {
+            padding: 1.5rem;
+        }
+        
+        .actions {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="reglement-container">
+    <!-- Header -->
+    <div class="reglement-header">
+        <h1><i class="fas fa-credit-card me-2"></i> Nouveau Reglement </h1>
+        <p>Facture {{ facture.numero }}</p>
+    </div>
+
+    <div class="reglement-content">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert">
+                        <span>&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Résumé de la facture -->
+        <div class="facture-summary">
+            <h4 class="mb-3"><i class="fas fa-file-invoice-dollar me-2"></i>Résumé de la facture</h4>
+            <div class="summary-row">
+                <span class="summary-label">Client</span>
+                <span class="summary-value">{{ facture.client.nom }}</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Total TTC</span>
+                <span class="summary-value">{{ facture.total_ttc|floatformat:0|intcomma }} FCFA</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Accompte</span>
+                <span class="summary-value">{{ facture.montant_accompte|floatformat:0|intcomma }} FCFA</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Règlements précédents</span>
+                <span class="summary-value">
+                    {% widthratio facture.net_a_payer|sub:facture.solde_du|sub:facture.montant_accompte 1 100 as reglements_total %}
+                    {{ reglements_total|floatformat:0|intcomma }} FCFA
+                </span>
+            </div>
+            <div class="solde-row summary-row">
+                <span class="summary-label"><i class="fas fa-exclamation-circle text-success me-1"></i>Solde restant</span>
+                <span class="summary-value">Max: {{ facture.solde_du|floatformat:0|intcomma }} FCFA</span>
+            </div>
+        </div>
+
+            <!-- Formulaire -->
+<!-- add_reglement.html -->
+<form method="post">
+    {% csrf_token %}
+    
+    {{ form.client }}{{ form.facture }} <!-- Cachés -->
+
+    <div class="form-group">
+        <label>{{ form.montant_reglement.label }}</label>
+        <div class="d-flex align-items-center">
+            {{ form.montant_reglement }}
+            <button type="button" class="max-solde-btn" onclick="fillMaxSolde()">Max</button>
+        </div>
+        {% if form.montant_reglement.errors %}
+            <small class="text-danger">{{ form.montant_reglement.errors|join:", " }}</small>
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        <label>{{ form.mode_reglement.label }}</label>
+        {{ form.mode_reglement }}
+    </div>
+
+    <div class="text-center">
+        <a href="{% url 'mode-reglement-list' %}" class="small text-muted">
+            Gérer les modes de règlement
+        </a>
+    </div>
+
+    <div class="actions">
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <a href="{% url 'document-detail' document_id=facture.id document_type='facture'  %}" class="btn btn-secondary">Annuler</a>
+    </div>
+</form>
+        
+    </div>
+</div>
+
+<script>
+    // Valeur maximale autorisée (passée proprement par Django)
+    const MAX_POSSIBLE = {{ max_possible|floatformat:0|default:0 }};
+
+    // On récupère l'input montant
+    const montantInput = document.querySelector('input[name="montant_reglement"]');
+
+    // Fonction pour nettoyer et convertir en nombre pur
+    function nettoyerMontant(valeur) {
+        if (!valeur) return '';
+        // Supprime TOUS les espaces (y compris insécables), virgules, etc.
+        return valeur.toString().replace(/[^\d]/g, '');
+    }
+
+    // Fonction pour formater en français AVEC espace fin (espace insécable)
+    function formaterMontant(nombre) {
+        return Number(nombre).toLocaleString('fr-FR', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+        });
+    }
+
+    // Bouton "Max"
+    function fillMaxSolde() {
+        const valeurPropre = nettoyerMontant(MAX_POSSIBLE);
+        montantInput.value = formaterMontant(valeurPropre);
+        montantInput.dispatchEvent(new Event('input')); // important pour les navigateurs
+    }
+
+    // Au blur → on nettoie puis on reformate proprement
+    montantInput?.addEventListener('blur', function () {
+        const valeurBrute = this.value;
+        const valeurNettoyee = nettoyerMontant(valeurBrute);
+
+        if (valeurNettoyee === '') {
+            this.value = '';
+            return;
+        }
+
+        this.value = formaterMontant(valeurNettoyee);
+    });
+
+    // Permet de taper normalement (supprime tout sauf chiffres pendant la saisie)
+    montantInput?.addEventListener('input', function (e) {
+        const curseur = this.selectionStart;
+        const valeurAvant = this.value;
+
+        const valeurNettoyee = nettoyerMontant(this.value);
+
+        if (valeurNettoyee !== '') {
+            this.value = formaterMontant(valeurNettoyee);
+
+            // Recalcule la position du curseur (très important pour l’expérience utilisateur)
+            const difference = this.value.length - valeurAvant.length;
+            this.setSelectionRange(curseur + difference, curseur + difference);
+        } else {
+            this.value = '';
+        }
+    });
+
+    // Formatage au chargement de la page (si valeur pré-remplie)
+    if (montantInput?.value) {
+        const net = nettoyerMontant(montantInput.value);
+        if (net) {
+            montantInput.value = formaterMontant(net);
+        }
+    }
+
+    // Nettoyer le montant avant soumission du formulaire
+document.querySelector('form').addEventListener('submit', function(e) {
+    const valeurNettoyee = nettoyerMontant(montantInput.value);
+    montantInput.value = valeurNettoyee; // Envoie le nombre pur sans formatage
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

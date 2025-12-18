@@ -1,162 +1,540 @@
 {% extends 'facture/base.html' %}
 
 {% block content %}
- <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .formset-container { margin-bottom: 20px; }
-        .formset-item { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; }
-        .formset-item .form-group { margin-bottom: 10px; }
-    </style>
+<style>
+    .formset-container { margin-bottom: 20px; }
+    .formset-item { 
+        border: 1px solid #ddd; 
+        padding: 15px; 
+        margin-bottom: 10px; 
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+    }
+    .formset-item:hover {
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .formset-item .form-group { margin-bottom: 10px; }
+    .loading { opacity: 0.6; }
+    .devis-selector {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    .devis-card {
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .devis-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .devis-card.selected {
+        border: 2px solid #28a745;
+        background-color: #d4edda;
+    }
+    .total-price {
+        font-weight: bold;
+        background-color: #e9ecef !important;
+    }
+</style>
+
 <div class="container mt-4">
-        <h1>Créer une facture</h1>
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-
-        <form method="post">
-            {% csrf_token %}
-            <!-- Formulaire principal -->
-            <div class="form-group">
-                {{ form.client.label_tag }}
-                {{ form.client }}
-                {% if form.client.errors %}
-                    <div class="text-danger">{{ form.client.errors }}</div>
-                {% endif %}
-            </div>
-            <div class="form-group">
-                {{ form.montant_accompte.label_tag }}
-                {{ form.montant_accompte }}
-                {% if form.montant_accompte.errors %}
-                    <div class="text-danger">{{ form.montant_accompte.errors }}</div>
-                {% endif %}
-            </div>
-            <div class="form-group">
-                {{ form.tva_rate.label_tag }}
-                {{ form.tva_rate }}
-                {% if form.tva_rate.errors %}
-                    <div class="text-danger">{{ form.tva_rate.errors }}</div>
-                {% endif %}
-            </div>
-            <div class="form-group">
-                {{ form.statut.label_tag }}
-                {{ form.statut }}
-                {% if form.statut.errors %}
-                    <div class="text-danger">{{ form.statut.errors }}</div>
-                {% endif %}
-            </div>
-            <div class="form-group">
-                {{ form.commentaire.label_tag }}
-                {{ form.commentaire }}
-                {% if form.commentaire.errors %}
-                    <div class="text-danger">{{ form.commentaire.errors }}</div>
-                {% endif %}
-            </div>
-
-            <!-- Produits -->
-            <h3>Produits</h3>
-            {{ produit_formset.management_form }}
-            <div id="produit-formset" class="formset-container">
-                {% for produit_form in produit_formset %}
-                    <div class="formset-item">
-                        {{ produit_form.nom_produit.label_tag }}
-                        {{ produit_form.nom_produit }}
-                        {% if produit_form.nom_produit.errors %}
-                            <div class="text-danger">{{ produit_form.nom_produit.errors }}</div>
-                        {% endif %}
-
-                        {{ produit_form.description_produit.label_tag }}
-                        {{ produit_form.description_produit }}
-                        {% if produit_form.description_produit.errors %}
-                            <div class="text-danger">{{ produit_form.description_produit.errors }}</div>
-                        {% endif %}
-
-                        {{ produit_form.prix_unitaire_produit.label_tag }}
-                        {{ produit_form.prix_unitaire_produit }}
-                        {% if produit_form.prix_unitaire_produit.errors %}
-                            <div class="text-danger">{{ produit_form.prix_unitaire_produit.errors }}</div>
-                        {% endif %}
-
-                        {{ produit_form.quantity.label_tag }}
-                        {{ produit_form.quantity }}
-                        {% if produit_form.quantity.errors %}
-                            <div class="text-danger">{{ produit_form.quantity.errors }}</div>
-                        {% endif %}
-
-                        {{ produit_form.category.label_tag }}
-                        {{ produit_form.category }}
-                        {% if produit_form.category.errors %}
-                            <div class="text-danger">{{ produit_form.category.errors }}</div>
-                        {% endif %}
-
-                        {% if produit_form.DELETE %}
-                            {{ produit_form.DELETE }}
-                            <label><input type="checkbox" name="{{ produit_form.DELETE.name }}" /> Supprimer</label>
-                        {% endif %}
-                    </div>
-                {% endfor %}
-            </div>
-
-            <!-- Services -->
-            <h3>Services</h3>
-            {{ service_formset.management_form }}
-            <div id="service-formset" class="formset-container">
-                {% for service_form in service_formset %}
-                    <div class="formset-item">
-                        {{ service_form.nom_service.label_tag }}
-                        {{ service_form.nom_service }}
-                        {% if service_form.nom_service.errors %}
-                            <div class="text-danger">{{ service_form.nom_service.errors }}</div>
-                        {% endif %}
-
-                        {{ service_form.description_service.label_tag }}
-                        {{ service_form.description_service }}
-                        {% if service_form.description_service.errors %}
-                            <div class="text-danger">{{ service_form.description_service.errors }}</div>
-                        {% endif %}
-
-                        {{ service_form.montant_du_service.label_tag }}
-                        {{ service_form.montant_du_service }}
-                        {% if service_form.montant_du_service.errors %}
-                            <div class="text-danger">{{ service_form.montant_du_service.errors }}</div>
-                        {% endif %}
-
-                        {{ service_form.date_prestation_service.label_tag }}
-                        {{ service_form.date_prestation_service }}
-                        {% if service_form.date_prestation_service.errors %}
-                            <div class="text-danger">{{ service_form.date_prestation_service.errors }}</div>
-                        {% endif %}
-
-                        {% if service_form.DELETE %}
-                            {{ service_form.DELETE }}
-                            <label><input type="checkbox" name="{{ service_form.DELETE.name }}" /> Supprimer</label>
-                        {% endif %}
-                    </div>
-                {% endfor %}
-            </div>
-
-            <button type="submit" class="btn btn-primary">Enregistrer</button>
-        </form>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-file-invoice"></i> Créer une facture</h1>
+        <a href="{% url 'liste-facture' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
     </div>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert">&times;</button>
+            </div>
+        {% endfor %}
+    {% endif %}
 
-    <!-- Script pour ajout dynamique (optionnel) -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery.formset@1.2.2/jquery.formset.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('#produit-formset').formset({
-                prefix: '{{ produit_formset.prefix }}',
-                addText: 'Ajouter un produit',
-                deleteText: 'Supprimer'
-            });
-            $('#service-formset').formset({
-                prefix: '{{ service_formset.prefix }}',
-                addText: 'Ajouter un service',
-                deleteText: 'Supprimer'
-            });
+    <!-- Sélecteur de devis -->
+    {% if devis_disponibles %}
+    <div class="devis-selector">
+        <h4><i class="fas fa-file-alt"></i> Créer depuis un devis existant</h4>
+        <p class="mb-3">Sélectionnez un devis accepté pour pré-remplir automatiquement la facture</p>
+        
+        <div class="row">
+            {% for d in devis_disponibles %}
+            <div class="col-md-4 mb-3">
+                <div class="card devis-card {% if devis and devis.id == d.id %}selected{% endif %}" 
+                     data-devis-id="{{ d.id }}" 
+                     onclick="selectDevis({{ d.id }})">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ d.numero }}</h6>
+                        <p class="card-text mb-1">
+                            <strong>Client:</strong> {{ d.client.nom }}<br>
+                            <strong>Montant:</strong> {{ d.total_ttc|floatformat:2 }} FCFA<br>
+                            <strong>Date:</strong> {{ d.date_creation|date:"d/m/Y" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        Aucun devis accepté disponible. Créez d'abord un devis.
+    </div>
+    {% endif %}
+
+    <form method="post" id="factureForm">
+        {% csrf_token %}
+        
+        <!-- Champ caché pour le devis_id -->
+        <input type="hidden" id="id_devis_origine" name="devis_origine" value="{{ devis_id|default:'' }}">
+
+        <!-- Formulaire principal -->
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <h5><i class="fas fa-info-circle"></i> Informations de la facture</h5>
+            </div>
+            <div class="card-body">
+                <div class="form-group mb-3">
+                    {{ form.client.label_tag }}
+                    {{ form.client }}
+                    {% if form.client.errors %}
+                        <div class="text-danger">{{ form.client.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            {{ form.montant_accompte.label_tag }}
+                            {{ form.montant_accompte }}
+                            {% if form.montant_accompte.errors %}
+                                <div class="text-danger">{{ form.montant_accompte.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            {{ form.taux_tva.label_tag }}
+                            {{ form.taux_tva }}
+                            {% if form.taux_tva.errors %}
+                                <div class="text-danger">{{ form.taux_tva.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    {{ form.statut.label_tag }}
+                    {{ form.statut }}
+                    {% if form.statut.errors %}
+                        <div class="text-danger">{{ form.statut.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group mb-3">
+                    {{ form.commentaire.label_tag }}
+                    {{ form.commentaire }}
+                    {% if form.commentaire.errors %}
+                        <div class="text-danger">{{ form.commentaire.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Produits -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-box me-2"></i> Produits</h5>
+            </div>
+            <div class="card-body">
+                {{ produit_formset.management_form }}
+                <div id="produits-container" class="formset-container">
+                    {% for produit_form in produit_formset %}
+                        <div class="formset-item produit-item" data-form-index="{{ forloop.counter0 }}">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label class="form-label">Nom du Produit</label>
+                                    {{ produit_form.nom_produit }}
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Description</label>
+                                    {{ produit_form.description_produit }}
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Prix Unit.</label>
+                                    {{ produit_form.prix_unitaire_produit }}
+                                </div>
+                                <div class="col-md-1">
+                                    <label class="form-label">Qté</label>
+                                    {{ produit_form.quantite }}
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Remise (%)</label>
+                                    {{ produit_form.remise }}
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Total</label>
+                                    <input type="number" class="form-control total-price" 
+                                           id="total_price_{{ forloop.counter0 }}" 
+                                           readonly step="0.01">
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-2">
+                                <div class="col-12 d-flex justify-content-end">
+                                    {% if forloop.first %}
+                                        <button type="button" class="btn btn-sm btn-danger remove-produit" disabled>
+                                            <i class="fas fa-trash"></i> Supprimer
+                                        </button>
+                                    {% else %}
+                                        <button type="button" class="btn btn-sm btn-danger remove-produit">
+                                            <i class="fas fa-trash"></i> Supprimer
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Champs cachés -->
+                            <div style="display:none;">
+                                {{ produit_form.id }}
+                                {{ produit_form.produit }}
+                                {{ produit_form.DELETE }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="btn btn-success btn-sm" id="add-produit">
+                    <i class="fas fa-plus"></i> Ajouter un produit
+                </button>
+            </div>
+        </div>
+
+        <!-- Services -->
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                <h5><i class="fas fa-concierge-bell"></i> Services</h5>
+            </div>
+            <div class="card-body">
+                {{ service_formset.management_form }}
+                <div id="services-container" class="formset-container">
+                    {% for service_form in service_formset %}
+                        <div class="formset-item service-item" data-form-index="{{ forloop.counter0 }}">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label class="form-label">Nom du Service</label>
+                                    {{ service_form.nom_service }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Description</label>
+                                    {{ service_form.description_service }}
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Montant</label>
+                                    {{ service_form.montant_du_service }}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Date Prestation</label>
+                                    {{ service_form.date_prestation_service }}
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-2">
+                                <div class="col-12 d-flex justify-content-end">
+                                    {% if forloop.first %}
+                                        <button type="button" class="btn btn-sm btn-danger remove-service" disabled>
+                                            <i class="fas fa-trash"></i> Supprimer
+                                        </button>
+                                    {% else %}
+                                        <button type="button" class="btn btn-sm btn-danger remove-service">
+                                            <i class="fas fa-trash"></i> Supprimer
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Champs cachés -->
+                            <div style="display:none;">
+                                {{ service_form.id }}
+                                {{ service_form.service }}
+                                {{ service_form.DELETE }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="btn btn-info btn-sm" id="add-service">
+                    <i class="fas fa-plus"></i> Ajouter un service
+                </button>
+            </div>
+        </div>
+
+        <!-- Total Général -->
+        <div class="card mb-4">
+            <div class="card-body bg-light">
+                <div class="row">
+                    <div class="col-md-6 offset-md-6">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong>Total HT:</strong>
+                            <span id="total_ht" class="fs-5">0.00 FCFA</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong>TVA:</strong>
+                            <span id="total_tva" class="fs-5">0.00 FCFA</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                            <strong class="fs-4">Total TTC:</strong>
+                            <span id="total_general" class="fs-4 text-primary fw-bold">0.00 FCFA</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-end mb-4">
+            <a href="{% url 'liste-facture' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Annuler
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Enregistrer
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let produitIndex = {{ produit_formset.total_form_count }};
+    let serviceIndex = {{ service_formset.total_form_count }};
+
+    const produitTemplate = document.querySelector('.produit-item') ? document.querySelector('.produit-item').cloneNode(true) : null;
+    const serviceTemplate = document.querySelector('.service-item') ? document.querySelector('.service-item').cloneNode(true) : null;
+
+    // Sélection d'un devis
+    window.selectDevis = function(devisId) {
+        window.location.href = "{% url 'create-facture' %}?devis_id=" + devisId;
+    };
+
+    // Add Product
+    document.getElementById('add-produit').addEventListener('click', function () {
+        if (!produitTemplate) return;
+        
+        const container = document.getElementById('produits-container');
+        const newProduit = produitTemplate.cloneNode(true);
+        newProduit.dataset.formIndex = produitIndex;
+
+        newProduit.querySelectorAll('input, select, textarea').forEach(input => {
+            if (input.name && !input.classList.contains('total-price')) {
+                input.name = input.name.replace(/produits-\d+-/, `produits-${produitIndex}-`);
+                input.id = input.id.replace(/id_produits-\d+-/, `id_produits-${produitIndex}-`);
+                input.value = input.type === 'number' && input.name.includes('quantite') ? '1' : '';
+            }
         });
-    </script>
+
+        const totalPriceInput = newProduit.querySelector('.total-price');
+        totalPriceInput.id = `total_price_${produitIndex}`;
+        totalPriceInput.value = '0.00';
+
+        const removeButton = newProduit.querySelector('.remove-produit');
+        removeButton.disabled = false;
+
+        container.appendChild(newProduit);
+
+        const totalFormsInput = document.querySelector('input[name="produits-TOTAL_FORMS"]');
+        if (totalFormsInput) {
+            totalFormsInput.value = parseInt(totalFormsInput.value) + 1;
+        }
+
+        produitIndex++;
+        attachEventListeners();
+        updateTotalGeneral();
+    });
+
+    // Add Service
+    document.getElementById('add-service').addEventListener('click', function () {
+        if (!serviceTemplate) return;
+        
+        const container = document.getElementById('services-container');
+        const newService = serviceTemplate.cloneNode(true);
+        newService.dataset.formIndex = serviceIndex;
+
+        newService.querySelectorAll('input, select, textarea').forEach(input => {
+            if (input.name) {
+                input.name = input.name.replace(/services-\d+-/, `services-${serviceIndex}-`);
+                input.id = input.id.replace(/id_services-\d+-/, `id_services-${serviceIndex}-`);
+                input.value = '';
+            }
+        });
+
+        const removeButton = newService.querySelector('.remove-service');
+        removeButton.disabled = false;
+
+        container.appendChild(newService);
+
+        const totalFormsInput = document.querySelector('input[name="services-TOTAL_FORMS"]');
+        if (totalFormsInput) {
+            totalFormsInput.value = parseInt(totalFormsInput.value) + 1;
+        }
+
+        serviceIndex++;
+        attachEventListeners();
+        updateTotalGeneral();
+    });
+
+    function attachEventListeners() {
+        // Remove handlers
+        document.querySelectorAll('.remove-produit').forEach(button => {
+            button.onclick = function() {
+                const item = this.closest('.produit-item');
+                const deleteInput = item.querySelector('input[name$="-DELETE"]');
+                if (deleteInput) {
+                    deleteInput.value = 'on';
+                    item.style.display = 'none';
+                } else {
+                    item.remove();
+                }
+                updateTotalGeneral();
+            };
+        });
+
+        document.querySelectorAll('.remove-service').forEach(button => {
+            button.onclick = function() {
+                const item = this.closest('.service-item');
+                const deleteInput = item.querySelector('input[name$="-DELETE"]');
+                if (deleteInput) {
+                    deleteInput.value = 'on';
+                    item.style.display = 'none';
+                } else {
+                    item.remove();
+                }
+                updateTotalGeneral();
+            };
+        });
+
+        // Product calculations
+        document.querySelectorAll('.produit-item').forEach(item => {
+            if (item.style.display !== 'none') {
+                const qtyInput = item.querySelector('input[name$="quantite"]');
+                const priceInput = item.querySelector('input[name$="prix_unitaire_produit"]');
+                const remiseInput = item.querySelector('input[name$="remise"]');
+                const totalInput = item.querySelector('.total-price');
+
+                if (qtyInput && priceInput && totalInput) {
+                    const updateTotal = () => {
+                        const qty = parseFloat(qtyInput.value) || 0;
+                        const price = parseFloat(priceInput.value) || 0;
+                        const remise = parseFloat(remiseInput?.value) || 0;
+                        const total = qty * price * (1 - remise / 100);
+                        totalInput.value = total.toFixed(2);
+                        updateTotalGeneral();
+                    };
+
+                    if (!qtyInput.dataset.listenerAttached) {
+                        qtyInput.addEventListener('input', updateTotal);
+                        qtyInput.dataset.listenerAttached = 'true';
+                    }
+                    
+                    if (!priceInput.dataset.listenerAttached) {
+                        priceInput.addEventListener('input', updateTotal);
+                        priceInput.dataset.listenerAttached = 'true';
+                    }
+                    
+                    if (remiseInput && !remiseInput.dataset.listenerAttached) {
+                        remiseInput.addEventListener('input', updateTotal);
+                        remiseInput.dataset.listenerAttached = 'true';
+                    }
+                    
+                    updateTotal();
+                }
+            }
+        });
+
+        // Service calculations
+        document.querySelectorAll('.service-item').forEach(item => {
+            if (item.style.display !== 'none') {
+                const montantInput = item.querySelector('input[name$="montant_du_service"]');
+                if (montantInput && !montantInput.dataset.listenerAttached) {
+                    montantInput.addEventListener('input', updateTotalGeneral);
+                    montantInput.dataset.listenerAttached = 'true';
+                }
+            }
+        });
+
+        // TVA listener
+        const tvaInput = document.querySelector('input[name="taux_tva"]');
+        if (tvaInput && !tvaInput.dataset.listenerAttached) {
+            tvaInput.addEventListener('input', updateTotalGeneral);
+            tvaInput.dataset.listenerAttached = 'true';
+        }
+    }
+
+    function updateTotalGeneral() {
+        let totalHT = 0;
+
+        // Produits
+        document.querySelectorAll('.produit-item').forEach(item => {
+            if (item.style.display !== 'none') {
+                const deleteInput = item.querySelector('input[name$="-DELETE"]');
+                if (!deleteInput || deleteInput.value == 'on') {
+                    const qtyInput = item.querySelector('input[name$="quantite"]');
+                    const priceInput = item.querySelector('input[name$="prix_unitaire_produit"]');
+                    const remiseInput = item.querySelector('input[name$="remise"]');
+                    
+                    if (qtyInput && priceInput) {
+                        const qty = parseFloat(qtyInput.value) || 0;
+                        const price = parseFloat(priceInput.value) || 0;
+                        const remise = parseFloat(remiseInput?.value) || 0;
+                        totalHT += qty * price * (1 - remise / 100);
+                    }
+                }
+            }
+        });
+
+        // Services
+        document.querySelectorAll('.service-item').forEach(item => {
+            if (item.style.display !== 'none') {
+                const deleteInput = item.querySelector('input[name$="-DELETE"]');
+                if (!deleteInput || deleteInput.value == 'on') {
+                    const montantInput = item.querySelector('input[name$="montant_du_service"]');
+                    const montant = montantInput ? parseFloat(montantInput.value) || 0 : 0;
+                    totalHT += montant;
+                }
+            }
+        });
+
+        // TVA
+        const tvaInput = document.querySelector('input[name="taux_tva"]');
+        const tvaRate = tvaInput ? parseFloat(tvaInput.value) || 18 : 18;
+        const totalTVA = totalHT * (tvaRate / 100);
+        const totalTTC = totalHT + totalTVA;
+
+        document.getElementById('total_ht').textContent = totalHT.toFixed(2) + ' FCFA';
+        document.getElementById('total_tva').textContent = totalTVA.toFixed(2) + ' FCFA';
+        document.getElementById('total_general').textContent = totalTTC.toFixed(2) + ' FCFA';
+    }
+
+    // Initialize
+    attachEventListeners();
+    updateTotalGeneral();
+    
+    // Auto-load si devis_id présent
+    var urlParams = new URLSearchParams(window.location.search);
+    var devisId = urlParams.get('devis_id') || document.getElementById('id_devis_origine').value;
+    
+    if (devisId) {
+        console.log("Devis ID détecté:", devisId);
+        // Les données sont déjà pré-remplies côté serveur
+        updateTotalGeneral(); // Recalculer après chargement
+    }
+});
+</script>
 {% endblock %}
-
-

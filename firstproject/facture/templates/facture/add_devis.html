@@ -11,8 +11,7 @@
             <i class="fas fa-arrow-left me-2"></i>Retour à la liste
         </a>
     </div>
-
-    {% if messages %}
+     {% if messages %}
         <div class="alert-container">
             {% for message in messages %}
                 <div class="alert alert-{% if message.tags == 'success' %}success{% else %}danger{% endif %} alert-dismissible fade show" role="alert">
@@ -24,10 +23,11 @@
         </div>
     {% endif %}
 
-    <form method="POST" action="{% url 'create-devis' %}">
+    <form method="POST" action="{% url 'create-devis'  %}" id="devis-form" novalidate>
         {% csrf_token %}
         
-        <!-- Informations du Devis -->
+        <!-- Champs du formulaire DevisForm -->
+       <!-- Informations du Devis -->
         <div class="card mb-4">
             <div class="card-header bg-primary text-white">
                 <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informations du Devis</h5>
@@ -55,12 +55,12 @@
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="{{ form.tva_rate.id_for_label }}" class="form-label">
+                        <label for="{{ form.taux_tva.id_for_label }}" class="form-label">
                             <i class="fas fa-percent me-1"></i>Taux de TVA (%)
                         </label>
-                        {{ form.tva_rate }}
+                        {{ form.taux_tva }}
                         <small class="form-text text-muted">Par défaut: 18%</small>
-                        {{ form.tva_rate.errors }}
+                        {{ form.taux_tva.errors }}
                     </div>
 
                     <div class="col-md-6 mb-3">
@@ -82,156 +82,181 @@
             </div>
         </div>
 
-        <!-- Produits Formset -->
-        <div class="card mb-4">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0"><i class="fas fa-box me-2"></i>Produits</h5>
-            </div>
-            <div class="card-body">
-                {{ produit_formset.management_form }}
-                <div id="produits-container">
-                    {% for produit_form in produit_formset %}
-                        <div class="produit-item mb-3 p-3 border rounded" data-form-index="{{ forloop.counter0 }}">
-                            {{ produit_form.non_field_errors }}
-                            <div class="row">
-                                <div class="col-md-3 position-relative">
-                                    <label for="{{ produit_form.nom_produit.id_for_label }}" class="form-label">
-                                        Nom du Produit <span class="text-danger">*</span>
-                                    </label>
-                                    {{ produit_form.nom_produit }}
-                                    <ul class="list-group suggestions position-absolute w-100" style="display:none; z-index:1000;"></ul>
-                                    <small class="form-text text-muted">Tapez au moins 2 caractères pour rechercher</small>
-                                    {{ produit_form.nom_produit.errors }}
-                                </div>
-                                
-                                <div class="col-md-3">
-                                    <label for="{{ produit_form.description_produit.id_for_label }}" class="form-label">Description</label>
-                                    {{ produit_form.description_produit }}
-                                    {{ produit_form.description_produit.errors }}
-                                </div>
-                                
-                                <div class="col-md-1">
-                                    <label for="{{ produit_form.quantity.id_for_label }}" class="form-label">Qté</label>
-                                    {{ produit_form.quantity }}
-                                    {{ produit_form.quantity.errors }}
-                                </div>
-                                
-                                <div class="col-md-2">
-                                    <label for="{{ produit_form.prix_unitaire_produit.id_for_label }}" class="form-label">Prix Unit.</label>
-                                    {{ produit_form.prix_unitaire_produit }}
-                                    {{ produit_form.prix_unitaire_produit.errors }}
-                                </div>
-                                
-                                <div class="col-md-1">
-                                    <label for="total_price_{{ forloop.counter0 }}" class="form-label">Total</label>
-                                    <input type="number" class="form-control total-price bg-light" id="total_price_{{ forloop.counter0 }}" readonly>
-                                </div>
-                                
-                                <div class="col-md-2">
-                                    <label for="{{ produit_form.category.id_for_label }}" class="form-label">Catégorie</label>
-                                    {{ produit_form.category }}
-                                    {{ produit_form.category.errors }}
-                                </div>
-                            </div>
-                            
-                            <div class="row mt-2">
-                                <div class="col-12 d-flex justify-content-end gap-2">
-                                    <a href="#" class="btn btn-sm btn-warning update-produit" style="display:none;">
-                                        <i class="fas fa-edit me-1"></i>Modifier dans la BDD
-                                    </a>
-                                    {% if forloop.first %}
-                                        <button type="button" class="btn btn-sm btn-danger remove-produit" disabled>
-                                            <i class="fas fa-trash me-1"></i>Supprimer
-                                        </button>
-                                    {% else %}
-                                        <button type="button" class="btn btn-sm btn-danger remove-produit">
-                                            <i class="fas fa-trash me-1"></i>Supprimer
-                                        </button>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <!-- Hidden DELETE field -->
-                            {{ produit_form.DELETE }}
-                        </div>
-                    {% endfor %}
-                </div>
-                <button type="button" class="btn btn-success" id="add-produit">
-                    <i class="fas fa-plus me-2"></i>Ajouter un Produit
-                </button>
-            </div>
-        </div>
 
-        <!-- Services Formset -->
-        <div class="card mb-4">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0"><i class="fas fa-concierge-bell me-2"></i>Services</h5>
-            </div>
-            <div class="card-body">
-                {{ service_formset.management_form }}
-                <div id="services-container">
-                    {% for service_form in service_formset %}
-                        <div class="service-item mb-3 p-3 border rounded" data-form-index="{{ forloop.counter0 }}">
-                            {{ service_form.non_field_errors }}
-                            <div class="row">
-                                <div class="col-md-3 position-relative">
-                                    <label for="{{ service_form.nom_service.id_for_label }}" class="form-label">
-                                        Nom du Service <span class="text-danger">*</span>
-                                    </label>
-                                    {{ service_form.nom_service }}
-                                    <ul class="list-group suggestions position-absolute w-100" style="display:none; z-index:1000;"></ul>
-                                    <small class="form-text text-muted">Tapez au moins 2 caractères pour rechercher</small>
-                                    {{ service_form.nom_service.errors }}
-                                </div>
-                                
-                                <div class="col-md-4">
-                                    <label for="{{ service_form.description_service.id_for_label }}" class="form-label">Description</label>
-                                    {{ service_form.description_service }}
-                                    {{ service_form.description_service.errors }}
-                                </div>
-                                
-                                <div class="col-md-2">
-                                    <label for="{{ service_form.montant_du_service.id_for_label }}" class="form-label">Montant</label>
-                                    {{ service_form.montant_du_service }}
-                                    {{ service_form.montant_du_service.errors }}
-                                </div>
-                                
-                                <div class="col-md-3">
-                                    <label for="{{ service_form.date_prestation_service.id_for_label }}" class="form-label">Date Prestation</label>
-                                    {{ service_form.date_prestation_service }}
-                                    {{ service_form.date_prestation_service.errors }}
-                                </div>
-                            </div>
-                            
-                            <div class="row mt-2">
-                                <div class="col-12 d-flex justify-content-end gap-2">
-                                    <a href="#" class="btn btn-sm btn-warning update-service" style="display:none;">
-                                        <i class="fas fa-edit me-1"></i>Modifier dans la BDD
-                                    </a>
-                                    {% if forloop.first %}
-                                        <button type="button" class="btn btn-sm btn-danger remove-service" disabled>
-                                            <i class="fas fa-trash me-1"></i>Supprimer
-                                        </button>
-                                    {% else %}
-                                        <button type="button" class="btn btn-sm btn-danger remove-service">
-                                            <i class="fas fa-trash me-1"></i>Supprimer
-                                        </button>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <!-- Hidden DELETE field -->
-                            {{ service_form.DELETE }}
+       <!-- Produits Formset -->
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0"><i class="fas fa-box me-2"></i>Produits</h5>
+    </div>
+    <div class="card-body">
+        <!-- CRITIQUE: Rendre le management form CORRECTEMENT -->
+        {{ produit_formset.management_form }}
+        
+        <div id="produits-container">
+            {% for produit_form in produit_formset %}
+                <div class="produit-item mb-3 p-3 border rounded" data-form-index="{{ forloop.counter0 }}">
+                    {{ produit_form.non_field_errors }}
+                    
+                    <!-- Champs cachés OBLIGATOIRES -->
+                    <div style="display:none;">
+                        {{ produit_form.id }}
+                        {{ produit_form.produit }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-3 position-relative">
+                            <label for="{{ produit_form.nom_produit.id_for_label }}" class="form-label">
+                                Nom du Produit <span class="text-danger">*</span>
+                            </label>
+                            {{ produit_form.nom_produit }}
+                            <ul class="list-group suggestions position-absolute w-100" style="display:none; z-index:1000;"></ul>
+                            <small class="form-text text-muted">Tapez au moins 2 caractères pour rechercher</small>
+                            {{ produit_form.nom_produit.errors }}
                         </div>
-                    {% endfor %}
-                </div>
-                <button type="button" class="btn btn-info" id="add-service">
-                    <i class="fas fa-plus me-2"></i>Ajouter un Service
-                </button>
-            </div>
-        </div>
+                        
+                        <div class="col-md-3">
+                            <label for="{{ produit_form.description_produit.id_for_label }}" class="form-label">Description</label>
+                            {{ produit_form.description_produit }}
+                            {{ produit_form.description_produit.errors }}
+                        </div>
+                        
+                        <div class="col-md-1">
+                            <label for="{{ produit_form.quantite.id_for_label }}" class="form-label">Qté</label>
+                            {{ produit_form.quantite }}
+                            {{ produit_form.quantite.errors }}
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <label for="{{ produit_form.prix_unitaire_produit.id_for_label }}" class="form-label">Prix Unit.</label>
+                            {{ produit_form.prix_unitaire_produit }}
+                            {{ produit_form.prix_unitaire_produit.errors }}
+                        </div>
 
-        <!-- Total Général -->
+                        <div class="col-md-2">
+                            <label for="{{ produit_form.remise.id_for_label }}" class="form-label">Remise (%)</label>
+                            {{ produit_form.remise }}
+                            {{ produit_form.remise.errors }}
+                        </div>
+                        
+                        <div class="col-md-1">
+                            <label for="total_price_{{ forloop.counter0 }}" class="form-label">Total</label>
+                            <input type="number" class="form-control total-price bg-light" id="total_price_{{ forloop.counter0 }}" readonly>
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <label for="{{ produit_form.category.id_for_label }}" class="form-label">Catégorie</label>
+                            {{ produit_form.category }}
+                            {{ produit_form.category.errors }}
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-2">
+                        <div class="col-12 d-flex justify-content-end gap-2">
+                            <a href="#" class="btn btn-sm btn-warning update-produit" style="display:none;">
+                                <i class="fas fa-edit me-1"></i>Modifier dans la BDD
+                            </a>
+                            {% if forloop.first %}
+                                <button type="button" class="btn btn-sm btn-danger remove-produit" disabled>
+                                    <i class="fas fa-trash me-1"></i>Supprimer
+                                </button>
+                            {% else %}
+                                <button type="button" class="btn btn-sm btn-danger remove-produit">
+                                    <i class="fas fa-trash me-1"></i>Supprimer
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Hidden DELETE field -->
+                    {{ produit_form.DELETE }}
+                </div>
+            {% endfor %}
+        </div>
+        <button type="button" class="btn btn-success" id="add-produit">
+            <i class="fas fa-plus me-2"></i>Ajouter un Produit
+        </button>
+    </div>
+</div>
+
+       <!-- Services Formset -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fas fa-concierge-bell me-2"></i>Services</h5>
+    </div>
+    <div class="card-body">
+        <!-- CRITIQUE: Rendre le management form CORRECTEMENT -->
+        {{ service_formset.management_form }}
+        
+        <div id="services-container">
+            {% for service_form in service_formset %}
+                <div class="service-item mb-3 p-3 border rounded" data-form-index="{{ forloop.counter0 }}">
+                    {{ service_form.non_field_errors }}
+                    
+                    <!-- Champs cachés OBLIGATOIRES -->
+                    <div style="display:none;">
+                        {{ service_form.id }}
+                        {{ service_form.service }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-3 position-relative">
+                            <label for="{{ service_form.nom_service.id_for_label }}" class="form-label">
+                                Nom du Service <span class="text-danger">*</span>
+                            </label>
+                            {{ service_form.nom_service }}
+                            <ul class="list-group suggestions position-absolute w-100" style="display:none; z-index:1000;"></ul>
+                            <small class="form-text text-muted">Tapez au moins 2 caractères pour rechercher</small>
+                            {{ service_form.nom_service.errors }}
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="{{ service_form.description_service.id_for_label }}" class="form-label">Description</label>
+                            {{ service_form.description_service }}
+                            {{ service_form.description_service.errors }}
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <label for="{{ service_form.montant_du_service.id_for_label }}" class="form-label">Montant</label>
+                            {{ service_form.montant_du_service }}
+                            {{ service_form.montant_du_service.errors }}
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label for="{{ service_form.date_prestation_service.id_for_label }}" class="form-label">Date Prestation</label>
+                            {{ service_form.date_prestation_service }}
+                            {{ service_form.date_prestation_service.errors }}
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-2">
+                        <div class="col-12 d-flex justify-content-end gap-2">
+                            <a href="#" class="btn btn-sm btn-warning update-service" style="display:none;">
+                                <i class="fas fa-edit me-1"></i>Modifier dans la BDD
+                            </a>
+                            {% if forloop.first %}
+                                <button type="button" class="btn btn-sm btn-danger remove-service" disabled>
+                                    <i class="fas fa-trash me-1"></i>Supprimer
+                                </button>
+                            {% else %}
+                                <button type="button" class="btn btn-sm btn-danger remove-service">
+                                    <i class="fas fa-trash me-1"></i>Supprimer
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Hidden DELETE field -->
+                    {{ service_form.DELETE }}
+                </div>
+            {% endfor %}
+        </div>
+        <button type="button" class="btn btn-info" id="add-service">
+            <i class="fas fa-plus me-2"></i>Ajouter un Service
+        </button>
+    </div>
+</div>
+        </div>
+ <!-- Total Général -->
         <div class="card mb-4">
             <div class="card-body bg-light">
                 <div class="row">
@@ -296,16 +321,16 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
     let produitIndex = {{ produit_formset.total_form_count }};
     let serviceIndex = {{ service_formset.total_form_count }};
 
     const searchProduitsUrl = "{% url 'search-produits' %}";
     const searchServicesUrl = "{% url 'search-services' %}";
-    const addElementUrl = "{% url 'ajouter_element' %}";
     const updateArticleBase = "{% url 'update-article' %}";
 
-    const produitTemplate = document.querySelector('.produit-item').cloneNode(true);
-    const serviceTemplate = document.querySelector('.service-item').cloneNode(true);
+    const produitTemplate = document.querySelector('.produit-item') ? document.querySelector('.produit-item').cloneNode(true) : null;
+    const serviceTemplate = document.querySelector('.service-item') ? document.querySelector('.service-item').cloneNode(true) : null;
 
     const debounce = (func, delay) => {
         let timeout;
@@ -317,21 +342,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Add Product
     document.getElementById('add-produit').addEventListener('click', function () {
+        if (!produitTemplate) return;
+        
         const container = document.getElementById('produits-container');
         const newProduit = produitTemplate.cloneNode(true);
         newProduit.dataset.formIndex = produitIndex;
 
         newProduit.querySelectorAll('input, select, textarea').forEach(input => {
             if (input.name && !input.classList.contains('total-price')) {
-                input.name = input.name.replace(/form-\d+-/, `form-${produitIndex}-`);
-                input.id = input.id.replace(/form-\d+-/, `form-${produitIndex}-`);
-                input.value = input.type === 'number' && input.name.includes('quantity') ? '1' : '';
+                input.name = input.name.replace(/produits-\d+-/, `produits-${produitIndex}-`);
+                input.id = input.id.replace(/id_produits-\d+-/, `id_produits-${produitIndex}-`);
+                input.value = input.type === 'number' && input.name.includes('quantite') ? '1' : '';
             }
         });
 
         newProduit.querySelectorAll('label').forEach(label => {
             if (label.htmlFor) {
-                label.htmlFor = label.htmlFor.replace(/form-\d+-/, `form-${produitIndex}-`);
+                label.htmlFor = label.htmlFor.replace(/id_produits-\d+-/, `id_produits-${produitIndex}-`);
             }
         });
 
@@ -347,8 +374,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         container.appendChild(newProduit);
 
-        const totalForms = document.querySelector('input[name$="-TOTAL_FORMS"]');
-        totalForms.value = parseInt(totalForms.value) + 1;
+        const totalFormsInput = document.querySelector('input[name="produits-TOTAL_FORMS"]');
+        if (totalFormsInput) {
+            totalFormsInput.value = parseInt(totalFormsInput.value) + 1;
+        }
 
         produitIndex++;
         attachEventListeners();
@@ -357,21 +386,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Add Service
     document.getElementById('add-service').addEventListener('click', function () {
+        if (!serviceTemplate) return;
+        
         const container = document.getElementById('services-container');
         const newService = serviceTemplate.cloneNode(true);
         newService.dataset.formIndex = serviceIndex;
 
         newService.querySelectorAll('input, select, textarea').forEach(input => {
             if (input.name) {
-                input.name = input.name.replace(/form-\d+-/, `form-${serviceIndex}-`);
-                input.id = input.id.replace(/form-\d+-/, `form-${serviceIndex}-`);
+                input.name = input.name.replace(/services-\d+-/, `services-${serviceIndex}-`);
+                input.id = input.id.replace(/id_services-\d+-/, `id_services-${serviceIndex}-`);
                 input.value = '';
             }
         });
 
         newService.querySelectorAll('label').forEach(label => {
             if (label.htmlFor) {
-                label.htmlFor = label.htmlFor.replace(/form-\d+-/, `form-${serviceIndex}-`);
+                label.htmlFor = label.htmlFor.replace(/id_services-\d+-/, `id_services-${serviceIndex}-`);
             }
         });
 
@@ -383,8 +414,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         container.appendChild(newService);
 
-        const totalForms = document.querySelector('input[name$="-TOTAL_FORMS"]');
-        totalForms.value = parseInt(totalForms.value) + 1;
+        const totalFormsInput = document.querySelector('input[name="services-TOTAL_FORMS"]');
+        if (totalFormsInput) {
+            totalFormsInput.value = parseInt(totalFormsInput.value) + 1;
+        }
 
         serviceIndex++;
         attachEventListeners();
@@ -404,6 +437,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     item.remove();
                 }
                 updateTotalGeneral();
+                updateSubmitButtonState();
             };
         });
 
@@ -418,45 +452,87 @@ document.addEventListener('DOMContentLoaded', function () {
                     item.remove();
                 }
                 updateTotalGeneral();
+                updateSubmitButtonState();
             };
         });
 
-        // Product calculations
+        // Product calculations - CORRECTION: Ne pas cloner les inputs
         document.querySelectorAll('.produit-item').forEach(item => {
             if (item.style.display !== 'none') {
-                const qtyInput = item.querySelector('input[name$="quantity"]');
+                const qtyInput = item.querySelector('input[name$="quantite"]');
                 const priceInput = item.querySelector('input[name$="prix_unitaire_produit"]');
+                const remiseInput = item.querySelector('input[name$="remise"]');
                 const totalInput = item.querySelector('.total-price');
 
-                const updateTotal = () => {
-                    const qty = parseFloat(qtyInput.value) || 0;
-                    const price = parseFloat(priceInput.value) || 0;
-                    totalInput.value = (qty * price).toFixed(2);
-                    updateTotalGeneral();
-                };
+                if (qtyInput && priceInput && totalInput) {
+                    const updateTotal = () => {
+                        const qty = parseFloat(qtyInput.value) || 0;
+                        const price = parseFloat(priceInput.value) || 0;
+                        const remise = parseFloat(remiseInput?.value) || 0;
+                        const total = qty * price * (1 - remise / 100);
+                        totalInput.value = total.toFixed(2);
+                        updateTotalGeneral();
+                    };
 
-                qtyInput.addEventListener('input', updateTotal);
-                priceInput.addEventListener('input', updateTotal);
+                    // Supprimer les anciens listeners en vérifiant s'ils existent déjà
+                    if (!qtyInput.dataset.listenerAttached) {
+                        qtyInput.addEventListener('input', updateTotal);
+                        qtyInput.dataset.listenerAttached = 'true';
+                    }
+                    
+                    if (!priceInput.dataset.listenerAttached) {
+                        priceInput.addEventListener('input', updateTotal);
+                        priceInput.dataset.listenerAttached = 'true';
+                    }
+                    
+                    if (remiseInput && !remiseInput.dataset.listenerAttached) {
+                        remiseInput.addEventListener('input', updateTotal);
+                        remiseInput.dataset.listenerAttached = 'true';
+                    }
+                    
+                    // Calculer le total initial
+                    updateTotal();
+                }
 
-                initProduitAutocomplete(item);
+                // Initialiser l'autocomplete seulement si pas déjà fait
+                if (!item.dataset.autocompleteInitialized) {
+                    initProduitAutocomplete(item);
+                    item.dataset.autocompleteInitialized = 'true';
+                }
             }
         });
 
-        // Service calculations
-        document.querySelectorAll('.service-item input[name$="montant_du_service"]').forEach(input => {
-            input.addEventListener('input', updateTotalGeneral);
-        });
-
+        // Service calculations - CORRECTION: Ne pas cloner les inputs
         document.querySelectorAll('.service-item').forEach(item => {
             if (item.style.display !== 'none') {
-                initServiceAutocomplete(item);
+                const montantInput = item.querySelector('input[name$="montant_du_service"]');
+                if (montantInput && !montantInput.dataset.listenerAttached) {
+                    montantInput.addEventListener('input', updateTotalGeneral);
+                    montantInput.dataset.listenerAttached = 'true';
+                }
+                
+                // Initialiser l'autocomplete seulement si pas déjà fait
+                if (!item.dataset.autocompleteInitialized) {
+                    initServiceAutocomplete(item);
+                    item.dataset.autocompleteInitialized = 'true';
+                }
             }
         });
+
+        // Listener pour le taux de TVA - CORRECTION: Déplacé ici
+        const tvaInput = document.querySelector('input[name="taux_tva"]');
+        if (tvaInput && !tvaInput.dataset.listenerAttached) {
+            tvaInput.addEventListener('input', updateTotalGeneral);
+            tvaInput.dataset.listenerAttached = 'true';
+        }
     }
 
     function initProduitAutocomplete(item) {
         const input = item.querySelector('input[name$="nom_produit"]');
         const suggestions = item.querySelector('.suggestions');
+        const produitSelect = item.querySelector('select[name$="-produit"]');
+
+        if (!input || !suggestions) return;
 
         input.addEventListener('input', debounce(async (e) => {
             const value = e.target.value;
@@ -467,12 +543,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
             try {
                 const response = await fetch(`${searchProduitsUrl}?q=${encodeURIComponent(value)}`);
+                if (!response.ok) throw new Error('Erreur réseau');
+                
                 const data = await response.json();
 
                 if (data.length === 0) {
                     const li = document.createElement('li');
                     li.classList.add('list-group-item', 'text-center');
-                    li.innerHTML = `<span class="text-muted">Aucun produit trouvé.</span> <a href="${addElementUrl}" target="_blank" class="btn btn-sm btn-success ms-2"><i class="fas fa-plus"></i> Ajouter</a>`;
+                    li.innerHTML = `<span class="text-muted">Aucun produit trouvé pour "${value}"</span>`;
                     suggestions.appendChild(li);
                     suggestions.style.display = 'block';
                 } else {
@@ -484,20 +562,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         li.addEventListener('click', () => {
                             input.value = prod.nom;
-                            item.querySelector('textarea[name$="description_produit"]').value = prod.description || '';
-                            item.querySelector('input[name$="prix_unitaire_produit"]').value = prod.prix || 0;
-                            if (prod.category) {
-                                item.querySelector('select[name$="category"]').value = prod.category;
+                            if (produitSelect) {
+                                produitSelect.value = prod.id;
                             }
+                            
+                            const descInput = item.querySelector('textarea[name$="description_produit"]');
+                            const priceInput = item.querySelector('input[name$="prix_unitaire_produit"]');
+                            const categorySelect = item.querySelector('select[name$="category"]');
+                            
+                            if (descInput) descInput.value = prod.description || '';
+                            if (priceInput) {
+                                priceInput.value = prod.prix || 0;
+                                // Déclencher le calcul du total
+                                priceInput.dispatchEvent(new Event('input'));
+                            }
+                            if (categorySelect && prod.category) categorySelect.value = prod.category;
 
                             const updateBtn = item.querySelector('.update-produit');
-                            updateBtn.style.display = 'inline-block';
-                            updateBtn.href = `${updateArticleBase}?type_element=produit&id=${prod.id}`;
+                            if (updateBtn) {
+                                updateBtn.style.display = 'inline-block';
+                                updateBtn.href = `${updateArticleBase}?type_element=produit&id=${prod.id}`;
+                            }
 
                             suggestions.innerHTML = '';
                             suggestions.style.display = 'none';
-
-                            item.querySelector('input[name$="quantity"]').dispatchEvent(new Event('input'));
                         });
 
                         suggestions.appendChild(li);
@@ -505,19 +593,29 @@ document.addEventListener('DOMContentLoaded', function () {
                     suggestions.style.display = 'block';
                 }
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Erreur lors de la recherche de produits:', error);
+                const li = document.createElement('li');
+                li.classList.add('list-group-item', 'text-danger', 'text-center');
+                li.textContent = 'Erreur lors de la recherche';
+                suggestions.appendChild(li);
+                suggestions.style.display = 'block';
             }
         }, 300));
 
-        input.addEventListener('blur', () => setTimeout(() => {
-            suggestions.innerHTML = '';
-            suggestions.style.display = 'none';
-        }, 200));
+        input.addEventListener('blur', () => {
+            setTimeout(() => {
+                suggestions.innerHTML = '';
+                suggestions.style.display = 'none';
+            }, 200);
+        });
     }
 
     function initServiceAutocomplete(item) {
         const input = item.querySelector('input[name$="nom_service"]');
         const suggestions = item.querySelector('.suggestions');
+        const serviceSelect = item.querySelector('select[name$="-service"]');
+
+        if (!input || !suggestions) return;
 
         input.addEventListener('input', debounce(async (e) => {
             const value = e.target.value;
@@ -525,15 +623,17 @@ document.addEventListener('DOMContentLoaded', function () {
             suggestions.style.display = 'none';
 
             if (value.length < 2) return;
- 
+
             try {
                 const response = await fetch(`${searchServicesUrl}?q=${encodeURIComponent(value)}`);
+                if (!response.ok) throw new Error('Erreur réseau');
+                
                 const data = await response.json();
 
                 if (data.length === 0) {
                     const li = document.createElement('li');
                     li.classList.add('list-group-item', 'text-center');
-                    li.innerHTML = `<span class="text-muted">Aucun service trouvé.</span> <a href="${addElementUrl}" target="_blank" class="btn btn-sm btn-success ms-2"><i class="fas fa-plus"></i> Ajouter</a>`;
+                    li.innerHTML = `<span class="text-muted">Aucun service trouvé pour "${value}"</span>`;
                     suggestions.appendChild(li);
                     suggestions.style.display = 'block';
                 } else {
@@ -544,20 +644,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         li.addEventListener('click', () => {
                             input.value = serv.nom;
-                            item.querySelector('textarea[name$="description_service"]').value = serv.description || '';
-                            item.querySelector('input[name$="montant_du_service"]').value = serv.montant || 0;
-                            if (serv.date) {
-                                item.querySelector('input[name$="date_prestation_service"]').value = serv.date;
+                            if (serviceSelect) {
+                                serviceSelect.value = serv.id;
                             }
+                            
+                            const descInput = item.querySelector('textarea[name$="description_service"]');
+                            const montantInput = item.querySelector('input[name$="montant_du_service"]');
+                            const dateInput = item.querySelector('input[name$="date_prestation_service"]');
+                            
+                            if (descInput) descInput.value = serv.description || '';
+                            if (montantInput) {
+                                montantInput.value = serv.montant || 0;
+                                // Déclencher le calcul du total
+                                montantInput.dispatchEvent(new Event('input'));
+                            }
+                            if (dateInput && serv.date) dateInput.value = serv.date;
 
                             const updateBtn = item.querySelector('.update-service');
-                            updateBtn.style.display = 'inline-block';
-                            updateBtn.href = `${updateArticleBase}?type_element=service&id=${serv.id}`;
+                            if (updateBtn) {
+                                updateBtn.style.display = 'inline-block';
+                                updateBtn.href = `${updateArticleBase}?type_element=service&id=${serv.id}`;
+                            }
 
                             suggestions.innerHTML = '';
                             suggestions.style.display = 'none';
-
-                            item.querySelector('input[name$="montant_du_service"]').dispatchEvent(new Event('input'));
                         });
 
                         suggestions.appendChild(li);
@@ -565,48 +675,117 @@ document.addEventListener('DOMContentLoaded', function () {
                     suggestions.style.display = 'block';
                 }
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Erreur lors de la recherche de services:', error);
+                const li = document.createElement('li');
+                li.classList.add('list-group-item', 'text-danger', 'text-center');
+                li.textContent = 'Erreur lors de la recherche';
+                suggestions.appendChild(li);
+                suggestions.style.display = 'block';
             }
         }, 300));
 
-        input.addEventListener('blur', () => setTimeout(() => {
-            suggestions.innerHTML = '';
-            suggestions.style.display = 'none';
-        }, 200));
+        input.addEventListener('blur', () => {
+            setTimeout(() => {
+                suggestions.innerHTML = '';
+                suggestions.style.display = 'none';
+            }, 200);
+        });
     }
 
     function updateTotalGeneral() {
         let totalHT = 0;
 
-        // Produits
+        // Produits (avec remise)
         document.querySelectorAll('.produit-item').forEach(item => {
+            
             if (item.style.display !== 'none') {
-                const total = parseFloat(item.querySelector('.total-price').value) || 0;
-                totalHT += total;
+                
+                const deleteInput = item.querySelector('input[name$="-DELETE"]');
+                if (!deleteInput  || deleteInput.value == 'on') {
+                    const qtyInput = item.querySelector('input[name$="quantite"]');
+                    const priceInput = item.querySelector('input[name$="prix_unitaire_produit"]');
+                    const remiseInput = item.querySelector('input[name$="remise"]');
+                    
+                    if (qtyInput && priceInput) {
+                        const qty = parseFloat(qtyInput.value) || 0;
+                        const price = parseFloat(priceInput.value) || 0;
+                        const remise = parseFloat(remiseInput?.value) || 0;
+                        totalHT += qty * price * (1 - remise / 100);
+                    }
+                }
             }
         });
 
         // Services
         document.querySelectorAll('.service-item').forEach(item => {
             if (item.style.display !== 'none') {
-                const montant = parseFloat(item.querySelector('input[name$="montant_du_service"]').value) || 0;
-                totalHT += montant;
+                const deleteInput = item.querySelector('input[name$="-DELETE"]');
+                if (!deleteInput || deleteInput.value == 'on') {
+                    const montantInput = item.querySelector('input[name$="montant_du_service"]');
+                    const montant = montantInput ? parseFloat(montantInput.value) || 0 : 0;
+                    totalHT += montant;
+                }
             }
         });
 
         // TVA
-        const tvaRate = parseFloat(document.querySelector('#{{ form.tva_rate.id_for_label }}').value) || 18;
+        const tvaInput = document.querySelector('input[name="taux_tva"]');
+        const tvaRate = tvaInput ? parseFloat(tvaInput.value) || 18 : 18;
         const totalTVA = totalHT * (tvaRate / 100);
         const totalTTC = totalHT + totalTVA;
+       
 
+        // Mise à jour de l'affichage
         document.getElementById('total_ht').textContent = totalHT.toFixed(2) + ' FCFA';
         document.getElementById('total_tva').textContent = totalTVA.toFixed(2) + ' FCFA';
         document.getElementById('total_general').textContent = totalTTC.toFixed(2) + ' FCFA';
+
+    }
+
+    function updateSubmitButtonState() {
+        const submitButton = document.querySelector('button[type="submit"]');
+        if (!submitButton) return;
+        
+        let hasValidItem = false;
+
+        // Vérifier les produits
+        document.querySelectorAll('.produit-item').forEach(item => {
+            if (item.style.display !== 'none') {
+                const nomProduit = item.querySelector('input[name$="nom_produit"]');
+                const deleteInput = item.querySelector('input[name$="-DELETE"]');
+                if (nomProduit && nomProduit.value && (!deleteInput || deleteInput.value !== 'on')) {
+                    hasValidItem = true;
+                }
+            }
+        });
+
+        // Vérifier les services
+        document.querySelectorAll('.service-item').forEach(item => {
+            if (item.style.display !== 'none') {
+                const nomService = item.querySelector('input[name$="nom_service"]');
+                const deleteInput = item.querySelector('input[name$="-DELETE"]');
+                if (nomService && nomService.value && (!deleteInput || deleteInput.value !== 'on')) {
+                    hasValidItem = true;
+                }
+            }
+        });
+
+        submitButton.disabled = !hasValidItem;
     }
 
     // Initialize
     attachEventListeners();
-    updateTotalGeneral();
+    updateTotalGeneral(); // CORRECTION: Forcer le calcul initial
+    updateSubmitButtonState();
+
+    // Ajouter des écouteurs pour mettre à jour l'état du bouton
+    document.querySelectorAll('.produit-item input, .service-item input').forEach(input => {
+        if (!input.dataset.submitListenerAttached) {
+            input.addEventListener('input', updateSubmitButtonState);
+            input.dataset.submitListenerAttached = 'true';
+        }
+    });
 });
+
 </script>
 {% endblock %}
