@@ -116,7 +116,7 @@
                         <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Paramètres</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
-                            <form action="{% url 'logout' %}" method="post" class="d-inline">
+                            <form action="{% url 'register:logout' %}" method="post" class="d-inline">
                                 {% csrf_token %}
                                 <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt me-2"></i>Déconnexion</button>
                             </form>
@@ -181,7 +181,7 @@
                     {% if user.is_authenticated %}
                     {% block content %}{% endblock %}
                     {% else %}
-                        <p>Login <a href="{% url 'login' %}"></a></p>
+                        <p>Login <a href="{% url 'register:login' %}"></a></p>
                     {% endif %}
                 </div>
                 <footer class="footer mt-auto py-3 px-4">

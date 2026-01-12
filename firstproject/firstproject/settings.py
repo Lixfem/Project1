@@ -152,7 +152,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 AUTH_USER_MODEL = 'register.User'
 
-LOGIN_URL ='login'
+LOGIN_URL ='register:login'
 LOGIN_REDIRECT_URL ='home'
 LOGOUT_REDIRECT_URL = 'login'
 

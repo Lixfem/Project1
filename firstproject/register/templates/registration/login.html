@@ -138,7 +138,7 @@
 <body>
     <div class="login-container">
         <h1>Connexion</h1>
-        <form method="post" action="{% url 'login' %}">
+        <form method="post" action="{% url 'register:login' %}">
             {% csrf_token %}
             <div class="form-group">
                 <label for="id_username">Nom d'utilisateur</label>
@@ -165,9 +165,9 @@
                 {% endif %}
             </div>
             <button type="submit" class="login-button">Se connecter</button>
-            <p><a href="{% url 'custom_password_reset' %}" class="password-reset">Mot de passe Oublié ?</a></p>
+            <p><a href="{% url 'register:custom_password_reset' %}" class="password-reset">Mot de passe Oublié ?</a></p>
 
-            <p>Pas de compte ? Créez un compte <a href="{% url 'register' %}">ici</a></p>
+            <p>Pas de compte ? Créez un compte <a href="{% url 'register:register' %}">ici</a></p>
         </form>
     </div>
 </body>

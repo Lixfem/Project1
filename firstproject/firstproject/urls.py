@@ -50,7 +50,7 @@ urlpatterns = [
      # Admin
     path('admin/', admin.site.urls),
     path('accounts/', include('register.urls')),#login, logout, register
-    path('facture/', include('facture.urls')),     #tout le reste
+    path('', include('facture.urls')),     #tout le reste
     # # Home page
     # path('',views.HomeView.as_view(),name='home'),
     # # page des parametrages
